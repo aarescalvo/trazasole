@@ -135,6 +135,7 @@ model Producto {
 }
 
 enum TipoRotulo {
+  PESAJE_INDIVIDUAL
   MEDIA_RES
   CUARTO
   MENUDENCIA

@@ -1033,6 +1033,70 @@ Stage Summary:
 - **Push a ambos repositorios** ✅
 
 ---
+Task ID: 1562
+Agent: main
+Task: Optimizar pesaje individual y crear sistema de rótulos ZPL
+
+Work Log:
+
+#### 1. Pantalla de Pesaje Individual Optimizada
+**Archivo:** `src/components/pesaje-individual-module.tsx`
+
+**Cambios realizados:**
+- Eliminado scroll de la pantalla de pesaje (overflow-auto → overflow-hidden)
+- Layout optimizado de 3 columnas a 4 columnas (panel principal 3/4, lista 1/4)
+- Número de animal reducido: text-8xl → text-5xl
+- Header compacto: py-2 → py-1.5, padding reducido
+- Labels compactos: text-xs → text-[10px]
+- Grid de controles en 2 columnas con gap reducido
+- Botones de tipo y raza más compactos (px-2 py-1)
+- Input de peso más pequeño: h-14 → h-10
+- Botón registrar optimizado: h-14 → h-12
+- Lista de animales en grid 2 columnas compacto
+
+**Resultado:** Todo visible sin scroll en pantalla estándar
+
+#### 2. Sistema de Rótulos ZPL
+**Archivos:**
+- `prisma/schema.prisma` - Agregado PESAJE_INDIVIDUAL a TipoRotulo enum
+- `src/app/api/rotulos/init-zpl/route.ts` - Nueva API para inicializar rótulos ZPL
+- `src/app/api/rotulos/route.ts` - Agregado filtro esDefault y categoria
+- `src/components/pesaje-individual-module.tsx` - Integrada impresión de rótulos
+
+**Rótulos ZPL por defecto creados:**
+1. **PESAJE_INDIVIDUAL** - Rótulo 10x5cm con número, tropa, tipo, peso y código de barras
+2. **MEDIA_RES** - Rótulo 8x12cm completo para medias reses
+3. **MENUDENCIA** - Rótulo 6x8cm para menudencias
+
+**Variables soportadas:**
+- `{{NUMERO}}` - Número de animal
+- `{{TROPA}}` - Código de tropa
+- `{{TIPO}}` - Tipo de animal
+- `{{PESO}}` - Peso vivo
+- `{{CODIGO}}` - Código del animal
+- `{{RAZA}}` - Raza
+- `{{CARAVANA}}` - Caravana
+
+#### 3. Integración de Impresión
+- Función `imprimirRotulo` ahora usa API de rótulos ZPL
+- Si no hay rótulo configurado, fallback a HTML básico
+- Busca rótulo default por tipo y esDefault
+
+#### 4. Comandos para Inicializar Rótulos
+```bash
+# Inicializar rótulos ZPL por defecto (ejecutar una vez)
+curl -X POST http://localhost:3000/api/rotulos/init-zpl
+```
+
+Stage Summary:
+- **Pantalla pesaje optimizada SIN scroll** ✅
+- **Sistema de rótulos ZPL creado** ✅
+- **3 rótulos default disponibles** ✅
+- **API de impresión integrada** ✅
+- **Versión actualizada a 3.1.0** ✅
+- **Pendiente: Push a ambos repositorios**
+
+---
 ## 📋 CHECKLIST DE FINALIZACIÓN (OBLIGATORIO)
 
 Al terminar CADA sesión de trabajo, verificar:

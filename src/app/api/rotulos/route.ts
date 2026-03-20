@@ -10,11 +10,15 @@ export async function GET(request: NextRequest) {
     const tipo = searchParams.get('tipo') as TipoRotulo | null
     const tipoImpresora = searchParams.get('tipoImpresora')
     const activo = searchParams.get('activo')
+    const esDefault = searchParams.get('esDefault')
+    const categoria = searchParams.get('categoria')
 
     const where: any = {}
     if (tipo) where.tipo = tipo
     if (tipoImpresora) where.tipoImpresora = tipoImpresora
     if (activo !== null) where.activo = activo === 'true'
+    if (esDefault !== null) where.esDefault = esDefault === 'true'
+    if (categoria) where.categoria = categoria
 
     const rotulos = await prisma.rotulo.findMany({
       where,
@@ -24,11 +28,11 @@ export async function GET(request: NextRequest) {
       ]
     })
 
-    return NextResponse.json(rotulos)
+    return NextResponse.json({ success: true, data: rotulos })
   } catch (error) {
     console.error('Error al obtener rótulos:', error)
     return NextResponse.json(
-      { error: 'Error al obtener rótulos' },
+      { success: false, error: 'Error al obtener rótulos' },
       { status: 500 }
     )
   }

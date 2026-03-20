@@ -717,8 +717,60 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
     }
   }
 
-  // Rótulo de 10x5 cm con código de barras (solo en impresión)
-  const imprimirRotulo = (animal: Animal) => {
+  // Imprimir rótulo usando la API de rótulos ZPL
+  const imprimirRotulo = async (animal: Animal) => {
+    try {
+      // Datos del animal para el rótulo
+      const datosRotulo = {
+        NUMERO: animal.numero,
+        TROPA: tropaSeleccionada?.codigo || '',
+        TIPO: animal.tipoAnimal || '',
+        PESO: animal.pesoVivo?.toString() || '0',
+        CODIGO: animal.codigo,
+        RAZA: animal.raza || '',
+        CARAVANA: animal.caravana || ''
+      }
+
+      // Buscar rótulo default para pesaje individual
+      const rotuloRes = await fetch('/api/rotulos?tipo=PESAJE_INDIVIDUAL&esDefault=true')
+      const rotuloData = await rotuloRes.json()
+      
+      if (!rotuloData.success || !rotuloData.data || rotuloData.data.length === 0) {
+        // Si no hay rótulo configurado, imprimir HTML básico
+        imprimirRotuloHTML(animal)
+        return
+      }
+
+      const rotulo = rotuloData.data[0]
+
+      // Enviar a imprimir
+      const printRes = await fetch('/api/rotulos/imprimir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rotuloId: rotulo.id,
+          datos: datosRotulo,
+          cantidad: 1
+        })
+      })
+
+      const printData = await printRes.json()
+      
+      if (printData.success) {
+        toast.success('Rótulo enviado a impresora')
+      } else {
+        // Fallback a HTML
+        imprimirRotuloHTML(animal)
+      }
+    } catch (error) {
+      console.error('Error al imprimir rótulo:', error)
+      // Fallback a HTML
+      imprimirRotuloHTML(animal)
+    }
+  }
+
+  // Fallback: imprimir HTML básico
+  const imprimirRotuloHTML = (animal: Animal) => {
     try {
       setTimeout(() => {
         const printWindow = window.open('', '_blank', 'width=400,height=250,noopener,noreferrer')
@@ -811,7 +863,7 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
         }
       }, 50)
     } catch (error) {
-      console.error('Error al imprimir rótulo:', error)
+      console.error('Error al imprimir rótulo HTML:', error)
     }
   }
 
@@ -1177,23 +1229,23 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
           </Card>
         </TabsContent>
 
-        {/* PESAR ANIMALES - Layout con scroll */}
-        <TabsContent value="pesar" className="flex-1 overflow-auto p-4">
-          <div className="h-full grid grid-cols-3 gap-4">
+        {/* PESAR ANIMALES - Layout optimizado SIN scroll */}
+        <TabsContent value="pesar" className="flex-1 overflow-hidden p-3">
+          <div className="h-full grid grid-cols-4 gap-3">
             {/* Panel Izquierdo: Formulario de Pesaje */}
-            <Card className="col-span-2 border-0 shadow-sm flex flex-col h-full overflow-auto">
-              <CardHeader className="bg-green-50 py-2 flex-shrink-0">
+            <Card className="col-span-3 border-0 shadow-sm flex flex-col h-full overflow-hidden">
+              <CardHeader className="bg-green-50 py-1.5 px-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{tropaSeleccionada?.codigo}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm">
+                  <CardTitle className="text-sm font-bold">{tropaSeleccionada?.codigo}</CardTitle>
+                  <div className="flex items-center gap-2 text-xs">
                     <span>{animalesPesados.length}/{animales.length}</span>
-                    <div className="w-24 h-2 bg-stone-200 rounded-full overflow-hidden">
+                    <div className="w-20 h-1.5 bg-stone-200 rounded-full overflow-hidden">
                       <div className="h-full bg-green-500" style={{ width: `${(animalesPesados.length / animales.length) * 100}%` }} />
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 p-4 overflow-auto flex flex-col">
+              <CardContent className="flex-1 p-3 overflow-hidden flex flex-col">
                 {animales.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-center">
                     <div>
@@ -1219,101 +1271,103 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
                     </div>
                   </div>
                 ) : animales[animalActual] ? (
-                  <div className="flex-1 flex flex-col">
-                    {/* NÚMERO DE ANIMAL DESTACADO */}
-                    <div className="text-center mb-4">
-                      <div className="text-8xl font-black text-stone-800 leading-none">
-                        {animales[animalActual].numero}
-                      </div>
-                      <div className="text-stone-400 text-sm mt-1">de {animales.length} animales</div>
-                    </div>
-
-                    {/* Tipos disponibles - Compacto */}
-                    <div className="mb-3">
-                      <Label className="text-xs font-semibold mb-1 block">Tipo *</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {tiposDisponiblesParaPesar.map((t) => {
-                          const tipoStatus = isTipoDisponible(t.codigo)
-                          const isSelected = tipoAnimalSeleccionado === t.codigo
-                          return (
-                            <button
-                              key={t.codigo}
-                              type="button"
-                              onClick={() => tipoStatus.disponible && setTipoAnimalSeleccionado(t.codigo)}
-                              disabled={!tipoStatus.disponible}
-                              className={`px-3 py-2 rounded text-sm font-bold transition-all ${
-                                isSelected 
-                                  ? 'bg-amber-500 text-white' 
-                                  : tipoStatus.disponible
-                                    ? 'bg-white border hover:border-amber-300'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {t.codigo} <span className="text-xs font-normal">({tipoStatus.restantes})</span>
-                            </button>
-                          )
-                        })}
+                  <div className="flex-1 flex flex-col justify-between">
+                    {/* HEADER COMPACTO: Número + Progreso */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-5xl font-black text-stone-800 leading-none">
+                          #{animales[animalActual].numero}
+                        </span>
+                        <span className="text-stone-400 text-sm">/ {animales.length}</span>
                       </div>
                     </div>
 
-                    {/* Peso y Caravana - Compacto */}
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    {/* GRID DE CONTROLES */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      {/* TIPO */}
                       <div>
-                        <Label className="text-xs mb-1 block">Peso (kg) *</Label>
-                        <Input
-                          type="number"
-                          value={pesoActual}
-                          onChange={(e) => setPesoActual(e.target.value)}
-                          className="text-3xl font-bold text-center h-14"
-                          placeholder={textos.textoPesoPlaceholder}
-                          autoFocus
-                        />
+                        <Label className="text-[10px] font-semibold text-stone-500 mb-0.5 block">TIPO *</Label>
+                        <div className="flex flex-wrap gap-1">
+                          {tiposDisponiblesParaPesar.map((t) => {
+                            const tipoStatus = isTipoDisponible(t.codigo)
+                            const isSelected = tipoAnimalSeleccionado === t.codigo
+                            return (
+                              <button
+                                key={t.codigo}
+                                type="button"
+                                onClick={() => tipoStatus.disponible && setTipoAnimalSeleccionado(t.codigo)}
+                                disabled={!tipoStatus.disponible}
+                                className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                                  isSelected 
+                                    ? 'bg-amber-500 text-white' 
+                                    : tipoStatus.disponible
+                                      ? 'bg-stone-100 hover:bg-amber-100'
+                                      : 'bg-stone-50 text-stone-300 cursor-not-allowed'
+                                }`}
+                              >
+                                {t.codigo}<span className="ml-0.5 opacity-60">({tipoStatus.restantes})</span>
+                              </button>
+                            )
+                          })}
+                        </div>
                       </div>
-                      <div>
-                        <Label className="text-xs mb-1 block">Caravana</Label>
-                        <Input
-                          value={caravana}
-                          onChange={(e) => setCaravana(e.target.value.toUpperCase())}
-                          placeholder="Opcional"
-                          className="font-mono h-14"
-                        />
-                      </div>
-                    </div>
 
-                    {/* Raza - Botones */}
-                    <div className="mb-4">
-                      <Label className="text-xs mb-1 block">Raza</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {razasActuales.map((r) => {
-                          const isSelected = raza === r
-                          return (
+                      {/* RAZA */}
+                      <div>
+                        <Label className="text-[10px] font-semibold text-stone-500 mb-0.5 block">RAZA</Label>
+                        <div className="flex flex-wrap gap-0.5">
+                          {razasActuales.slice(0, 6).map((r) => (
                             <button
                               key={r}
                               type="button"
                               onClick={() => setRaza(r)}
-                              className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                                isSelected 
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                                raza === r 
                                   ? 'bg-amber-500 text-white' 
-                                  : 'bg-white border hover:border-amber-300 hover:bg-amber-50'
+                                  : 'bg-stone-100 hover:bg-amber-50'
                               }`}
                             >
                               {r}
                             </button>
-                          )
-                        })}
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* PESO */}
+                      <div>
+                        <Label className="text-[10px] font-semibold text-stone-500 mb-0.5 block">PESO (kg) *</Label>
+                        <Input
+                          type="number"
+                          value={pesoActual}
+                          onChange={(e) => setPesoActual(e.target.value)}
+                          className="text-2xl font-bold text-center h-10"
+                          placeholder="0"
+                          autoFocus
+                        />
+                      </div>
+
+                      {/* CARAVANA */}
+                      <div>
+                        <Label className="text-[10px] font-semibold text-stone-500 mb-0.5 block">CARAVANA</Label>
+                        <Input
+                          value={caravana}
+                          onChange={(e) => setCaravana(e.target.value.toUpperCase())}
+                          placeholder="Opcional"
+                          className="font-mono h-10 text-sm"
+                        />
                       </div>
                     </div>
 
-                    {/* Botón Registrar */}
+                    {/* BOTÓN REGISTRAR - GRANDE Y VISIBLE */}
                     {getBoton('registrar')?.visible && (
                       <Button
                         onClick={handleRegistrarPeso}
                         disabled={saving || !pesoActual || !tipoAnimalSeleccionado}
-                        className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
+                        className="w-full h-12 text-base bg-green-600 hover:bg-green-700 mt-2"
                       >
                         {saving ? 'Guardando...' : (
                           <>
-                            <Scale className="w-5 h-5 mr-2" />
+                            <Scale className="w-4 h-4 mr-2" />
                             {getBoton('registrar')?.texto} <ArrowRight className="w-4 h-4 ml-2" />
                           </>
                         )}
@@ -1331,48 +1385,38 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
               </CardContent>
             </Card>
 
-            {/* Panel Derecho: Lista de Animales con scroll */}
+            {/* Panel Derecho: Lista de Animales COMPACTA */}
             <Card className="border-0 shadow-sm flex flex-col h-full overflow-hidden">
-              <CardHeader className="py-2 flex-shrink-0">
+              <CardHeader className="py-1.5 px-2 flex-shrink-0 bg-stone-50">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">{textos.labelListaAnimales}</CardTitle>
-                  <div className="text-xs text-stone-500">
-                    {animalesPesados.length} pesados, {animalesPendientes.length} pendientes
+                  <CardTitle className="text-xs">{textos.labelListaAnimales}</CardTitle>
+                  <div className="text-[10px] text-stone-500">
+                    {animalesPesados.length}✓ {animalesPendientes.length}⏳
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-0">
-                <div className="divide-y">
+              <CardContent className="flex-1 overflow-y-auto p-1">
+                <div className="grid grid-cols-2 gap-0.5">
                   {animales.map((animal, idx) => (
-                    <div
+                    <button
                       key={animal.id}
                       onClick={() => setAnimalActual(idx)}
-                      className={`flex items-center justify-between p-2 cursor-pointer ${
-                        idx === animalActual ? 'bg-amber-100' : 'hover:bg-stone-50'
+                      className={`flex items-center gap-1 p-1 rounded text-left ${
+                        idx === animalActual ? 'bg-amber-200 ring-1 ring-amber-400' : 'hover:bg-stone-100'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        {animal.estado === 'PESADO' ? (
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                        )}
-                        <span className={`font-bold ${animal.estado === 'PESADO' ? 'text-green-700' : ''}`}>
-                          #{animal.numero}
-                        </span>
-                        <Badge variant="outline" className="text-xs">{animal.tipoAnimal}</Badge>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {animal.pesoVivo && (
-                          <span className="text-xs text-green-600 font-medium">{animal.pesoVivo}kg</span>
-                        )}
-                        {animal.estado === 'PESADO' && animal.id && !animal.id.startsWith('temp-') && (
-                          <button onClick={(e) => { e.stopPropagation(); handleEditAnimal(animal); }} className="p-1 hover:bg-stone-200 rounded">
-                            <Edit className="w-3 h-3 text-stone-400" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                      {animal.estado === 'PESADO' ? (
+                        <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                      )}
+                      <span className={`text-xs font-bold ${animal.estado === 'PESADO' ? 'text-green-700' : ''}`}>
+                        {animal.numero}
+                      </span>
+                      {animal.pesoVivo && (
+                        <span className="text-[10px] text-green-600">{animal.pesoVivo}kg</span>
+                      )}
+                    </button>
                   ))}
                 </div>
               </CardContent>
