@@ -1526,3 +1526,95 @@ Stage Summary:
 ### Versión actual: **3.1.7**
 ### Próxima versión sugerida: **3.1.8**
 
+
+---
+Task ID: 1570
+Agent: main
+Task: Documentación completa - Scripts, instrucciones y backup
+
+Work Log:
+
+#### 1. Archivos Creados
+**Archivo:** `INSTRUCCIONES.md`
+- Guía completa de instalación
+- Scripts de inicio/detención
+- Scripts de actualización
+- Scripts de backup
+- Solución de problemas comunes
+- Comandos útiles
+- Configuración de repositorios
+
+#### 2. Scripts Documentados
+| Script | Función |
+|--------|---------|
+| `iniciar-servidor.bat` | Inicia el servidor en puerto 3000 |
+| `detener-servidor.bat` | Mata procesos bun/node |
+| `actualizar-sistema.bat` | Descarga actualizaciones de GitHub |
+| `reiniciar-actualizado.bat` | Detiene + Actualiza + Inicia |
+| `backup-sistema.bat` | Crea backup de PostgreSQL |
+
+#### 3. Errores Documentados
+- Puerto 3000 en uso
+- Comando no reconocido (carpeta incorrecta)
+- Git pull con conflictos
+- Schema SQLite vs PostgreSQL
+- PostgreSQL no accesible
+- Módulos no encontrados
+- Migraciones fallidas
+
+Stage Summary:
+- **Documentación completa creada** ✅
+- **Todos los scripts documentados** ✅
+- **Solución de problemas incluida** ✅
+- **Versión actualizada a 3.1.7** ✅
+
+---
+
+## 📋 PENDIENTES / PRÓXIMAS TAREAS
+
+### Alta Prioridad
+1. [ ] **Editor visual de rótulos drag and drop** - Funcionalidad base implementada, mejorar UX
+2. [ ] **Integración real con impresoras Zebra/Datamax** - Probar en producción
+3. [ ] **Configurar IP/puerto de impresoras** en puestos de trabajo
+
+### Media Prioridad
+4. [ ] **Sistema de logs centralizado** - Ver logs desde la UI
+5. [ ] **Backup automático programado** - Ejecutar cada noche
+6. [ ] **Notificaciones de alertas** - Stock bajo, calibraciones
+
+### Baja Prioridad
+7. [ ] **Reportes PDF exportables** - Formato profesional
+8. [ ] **Dashboard ejecutivo** - Gráficos y KPIs
+9. [ ] **App móvil** - Para pesajes en campo
+
+### Mejoras Continuas
+10. [ ] Optimizar rendimiento de consultas
+11. [ ] Agregar tests automatizados
+12. [ ] Documentar APIs con Swagger
+
+---
+### Versión actual: **3.1.7**
+### Próxima versión sugerida: **3.1.8**
+
+## 📊 RESUMEN DE LA SESIÓN
+
+### Cambios Realizados Hoy
+1. ✅ Restaurar cambios perdidos en ticket de pesaje
+2. ✅ Agregar logo real de Solemar (mismo que login)
+3. ✅ Actualizar dirección: Ruta Nacional N° 22, Km 1043, Chimpay, Río Negro
+4. ✅ Agregar firma del portero
+5. ✅ Cambiar "Firma Conforme" por "Firma Conforme Chofer"
+6. ✅ Crear documentación completa INSTRUCCIONES.md
+7. ✅ Documentar todos los scripts .bat
+8. ✅ Documentar solución de problemas comunes
+
+### Archivos Modificados
+- `src/components/pesaje-camiones/ticketPrint.ts` - Logo y dirección
+- `INSTRUCCIONES.md` - Nuevo archivo de documentación
+- `worklog.md` - Actualización de tareas
+- `package.json` - Versión 3.1.7
+
+### Push a GitHub
+- ✅ origin (1532 - desarrollo)
+- ✅ trazasole (producción)
+
