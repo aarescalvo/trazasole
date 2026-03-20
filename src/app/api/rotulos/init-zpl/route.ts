@@ -3,12 +3,10 @@ import { PrismaClient, TipoRotulo } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// ==================== PLANTILLAS ZEBRA (ZPL) ====================
-// Optimizadas para Zebra ZT410 (300 DPI) y ZT230 (203 DPI)
+// ==================== PLANTILLAS ZPL (ZEBRA) ====================
 
-// Rótulo ZPL para pesaje individual - 10x5 cm (ZT410/ZT230)
-const ZPL_PESAJE_INDIVIDUAL_203 = `^XA
-^FX Rótulo Pesaje Individual - SOLEMAR - 203 DPI
+const ZPL_PESAJE_INDIVIDUAL = `^XA
+^FX Rótulo Pesaje Individual - SOLEMAR
 ^PW400
 ^LL200
 ^CI28
@@ -21,24 +19,8 @@ const ZPL_PESAJE_INDIVIDUAL_203 = `^XA
 ^FO20,160^BCN,30,Y,Y,N^FD{{CODIGO}}^FS
 ^XZ`
 
-// Rótulo ZPL para pesaje individual - 300 DPI (ZT410)
-const ZPL_PESAJE_INDIVIDUAL_300 = `^XA
-^FX Rótulo Pesaje Individual - SOLEMAR - 300 DPI
-^PW590
-^LL295
-^CI28
-^FO30,22^A0N,42,42^FD**SOLEMAR ALIMENTARIA**^FS
-^FO30,74^A0N,72,72^FD#{{NUMERO}}^FS
-^FO30,155^A0N,27,27^FDTropa: {{TROPA}}^FS
-^FO300,155^A0N,27,27^FDTipo: {{TIPO}}^FS
-^FO30,192^A0N,33,33^FD{{PESO}} kg^FS
-^FO225,192^A0N,24,24^FD{{RAZA}}^FS
-^FO30,236^BCN,45,Y,Y,N^FD{{CODIGO}}^FS
-^XZ`
-
-// Rótulo ZPL para media res - 8x12 cm
-const ZPL_MEDIA_RES_203 = `^XA
-^FX Rótulo Media Res - SOLEMAR - 203 DPI
+const ZPL_MEDIA_RES = `^XA
+^FX Rótulo Media Res - SOLEMAR
 ^PW320
 ^LL480
 ^CI28
@@ -55,9 +37,8 @@ const ZPL_MEDIA_RES_203 = `^XA
 ^FO10,320^A0N,12,12^FDConservar a -1.5C a 4C^FS
 ^XZ`
 
-// Rótulo ZPL para menudencias - 6x8 cm
-const ZPL_MENUDENCIA_203 = `^XA
-^FX Rótulo Menudencia - SOLEMAR - 203 DPI
+const ZPL_MENUDENCIA = `^XA
+^FX Rótulo Menudencia - SOLEMAR
 ^PW240
 ^LL320
 ^CI28
@@ -70,10 +51,8 @@ const ZPL_MENUDENCIA_203 = `^XA
 ^FO10,210^A0N,10,10^FDConservar a -1.5C a 4C^FS
 ^XZ`
 
-// ==================== PLANTILLAS DATAMAX (DPL) ====================
-// Optimizadas para Datamax Mark II
+// ==================== PLANTILLAS DPL (DATAMAX) ====================
 
-// Rótulo DPL para pesaje individual - 10x5 cm (Datamax Mark II)
 const DPL_PESAJE_INDIVIDUAL = `<STX>C
 <STX>E
 <STX>H10
@@ -84,14 +63,13 @@ const DPL_PESAJE_INDIVIDUAL = `<STX>C
 <STX>D
 <STX>191100401000025SOLEMAR ALIMENTARIA
 <STX>191100601500050#{{NUMERO}}
-<STX>191100401000105Tropa: {TROPA}
-<STX>191100402000105Tipo: {TIPO}
+<STX>191100401000105Tropa: {{TROPA}}
+<STX>191100402000105Tipo: {{TIPO}}
 <STX>191100401000130{{PESO}} kg
-<STX>191100401500130{RAZA}
+<STX>191100401500130{{RAZA}}
 <STX>1e000200001600080{{CODIGO}}
 <ETX>`
 
-// Rótulo DPL para media res - 8x12 cm (Datamax Mark II)
 const DPL_MEDIA_RES = `<STX>C
 <STX>E
 <STX>H10
@@ -103,16 +81,15 @@ const DPL_MEDIA_RES = `<STX>C
 <STX>191100201000010ROTULO DEFINITIVO
 <STX>191100201000040SOLEMAR ALIMENTARIA
 <STX>191100201000070Est. N 3986
-<STX>191100301000100{PRODUCTO}
-<STX>191100201000140Fecha: {FECHA}
-<STX>191100201600140Tropa: {TROPA}
-<STX>191100201000170Lado: {LADO}
-<STX>191100201600170Peso: {PESO} kg
-<STX>191100151000210Consumir antes: {FECHA_VENC}
-<STX>1e00020000100250080{CODIGO_BARRAS}
+<STX>191100301000100{{PRODUCTO}}
+<STX>191100201000140Fecha: {{FECHA}}
+<STX>191100201600140Tropa: {{TROPA}}
+<STX>191100201000170Lado: {{LADO}}
+<STX>191100201600170Peso: {{PESO}} kg
+<STX>191100151000210Consumir antes: {{FECHA_VENC}}
+<STX>1e00020000100250080{{CODIGO_BARRAS}}
 <ETX>`
 
-// Rótulo DPL para menudencias - 6x8 cm (Datamax Mark II)
 const DPL_MENUDENCIA = `<STX>C
 <STX>E
 <STX>H10
@@ -122,15 +99,16 @@ const DPL_MENUDENCIA = `<STX>C
 <STX>d1
 <STX>D
 <STX>191100201000010SOLEMAR ALIMENTARIA
-<STX>191100251000040{PRODUCTO}
-<STX>191100151000080Fecha: {FECHA}
-<STX>191100151300080{PESO}kg
-<STX>191100121000110Vto: {FECHA_VENC}
-<STX>1e00020000100150070{CODIGO_BARRAS}
+<STX>191100251000040{{PRODUCTO}}
+<STX>191100151000080Fecha: {{FECHA}}
+<STX>191100151300080{{PESO}}kg
+<STX>191100121000110Vto: {{FECHA_VENC}}
+<STX>1e00020000100150070{{CODIGO_BARRAS}}
 <ETX>`
 
-// ==================== VARIABLES SOPORTADAS ====================
-const VARIABLES_PESAJE = [
+// ==================== VARIABLES ====================
+
+const VARIABLES_PESAJE = JSON.stringify([
   { variable: '{{NUMERO}}', campo: 'numero', descripcion: 'Número de animal' },
   { variable: '{{TROPA}}', campo: 'tropa', descripcion: 'Código de tropa' },
   { variable: '{{TIPO}}', campo: 'tipoAnimal', descripcion: 'Tipo de animal' },
@@ -138,9 +116,9 @@ const VARIABLES_PESAJE = [
   { variable: '{{CODIGO}}', campo: 'codigo', descripcion: 'Código del animal' },
   { variable: '{{RAZA}}', campo: 'raza', descripcion: 'Raza' },
   { variable: '{{CARAVANA}}', campo: 'caravana', descripcion: 'Caravana' },
-]
+])
 
-const VARIABLES_MEDIA_RES = [
+const VARIABLES_MEDIA_RES = JSON.stringify([
   { variable: '{{PRODUCTO}}', campo: 'nombreProducto', descripcion: 'Nombre del producto' },
   { variable: '{{FECHA}}', campo: 'fechaFaena', descripcion: 'Fecha de faena' },
   { variable: '{{TROPA}}', campo: 'tropa', descripcion: 'Código de tropa' },
@@ -148,48 +126,25 @@ const VARIABLES_MEDIA_RES = [
   { variable: '{{PESO}}', campo: 'peso', descripcion: 'Peso' },
   { variable: '{{FECHA_VENC}}', campo: 'fechaVencimiento', descripcion: 'Fecha vencimiento' },
   { variable: '{{CODIGO_BARRAS}}', campo: 'codigoBarras', descripcion: 'Código de barras' },
-]
+])
 
-const VARIABLES_MENUDENCIA = [
+const VARIABLES_MENUDENCIA = JSON.stringify([
   { variable: '{{PRODUCTO}}', campo: 'nombreProducto', descripcion: 'Producto' },
   { variable: '{{FECHA}}', campo: 'fechaFaena', descripcion: 'Fecha' },
   { variable: '{{PESO}}', campo: 'peso', descripcion: 'Peso' },
   { variable: '{{FECHA_VENC}}', campo: 'fechaVencimiento', descripcion: 'Vencimiento' },
   { variable: '{{CODIGO_BARRAS}}', campo: 'codigoBarras', descripcion: 'Código barras' },
-]
+])
 
-// Variables DPL (sin dobles llaves)
-const VARIABLES_PESAJE_DPL = [
-  { variable: '{NUMERO}', campo: 'numero', descripcion: 'Número de animal' },
-  { variable: '{TROPA}', campo: 'tropa', descripcion: 'Código de tropa' },
-  { variable: '{TIPO}', campo: 'tipoAnimal', descripcion: 'Tipo de animal' },
-  { variable: '{PESO}', campo: 'pesoVivo', descripcion: 'Peso vivo' },
-  { variable: '{CODIGO}', campo: 'codigo', descripcion: 'Código del animal' },
-  { variable: '{RAZA}', campo: 'raza', descripcion: 'Raza' },
-  { variable: '{CARAVANA}', campo: 'caravana', descripcion: 'Caravana' },
-]
+// ==================== POST - CREAR RÓTULOS ====================
 
-const VARIABLES_MEDIA_RES_DPL = [
-  { variable: '{PRODUCTO}', campo: 'nombreProducto', descripcion: 'Nombre del producto' },
-  { variable: '{FECHA}', campo: 'fechaFaena', descripcion: 'Fecha de faena' },
-  { variable: '{TROPA}', campo: 'tropa', descripcion: 'Código de tropa' },
-  { variable: '{LADO}', campo: 'ladoMedia', descripcion: 'Lado (I/D)' },
-  { variable: '{PESO}', campo: 'peso', descripcion: 'Peso' },
-  { variable: '{FECHA_VENC}', campo: 'fechaVencimiento', descripcion: 'Fecha vencimiento' },
-  { variable: '{CODIGO_BARRAS}', campo: 'codigoBarras', descripcion: 'Código de barras' },
-]
-
-// POST - Inicializar rótulos por defecto (Zebra y Datamax)
 export async function POST() {
   try {
-    // Verificar si ya existen rótulos
-    const existentes = await prisma.rotulo.count()
-    
-    // Rótulos ZPL (Zebra ZT410/ZT230)
-    const rotulosZebra = [
+    const rotulos = [
+      // ZEBRA ZT230 (203 DPI)
       {
-        nombre: 'Pesaje Individual - Zebra ZT230 (203dpi)',
-        codigo: 'PESAJE_IND_ZEBRA_203',
+        nombre: 'Pesaje Individual - Zebra ZT230',
+        codigo: 'PESAJE_IND_ZT230',
         tipo: TipoRotulo.PESAJE_INDIVIDUAL,
         categoria: 'PESAJE_INDIVIDUAL',
         tipoImpresora: 'ZEBRA',
@@ -197,16 +152,17 @@ export async function POST() {
         ancho: 100,
         alto: 50,
         dpi: 203,
-        contenido: ZPL_PESAJE_INDIVIDUAL_203,
-        variables: JSON.stringify(VARIABLES_PESAJE),
+        contenido: ZPL_PESAJE_INDIVIDUAL,
+        variables: VARIABLES_PESAJE,
         diasConsumo: 30,
         temperaturaMax: 5.0,
         activo: true,
         esDefault: true
       },
+      // ZEBRA ZT410 (300 DPI)
       {
-        nombre: 'Pesaje Individual - Zebra ZT410 (300dpi)',
-        codigo: 'PESAJE_IND_ZEBRA_300',
+        nombre: 'Pesaje Individual - Zebra ZT410',
+        codigo: 'PESAJE_IND_ZT410',
         tipo: TipoRotulo.PESAJE_INDIVIDUAL,
         categoria: 'PESAJE_INDIVIDUAL',
         tipoImpresora: 'ZEBRA',
@@ -214,54 +170,17 @@ export async function POST() {
         ancho: 100,
         alto: 50,
         dpi: 300,
-        contenido: ZPL_PESAJE_INDIVIDUAL_300,
-        variables: JSON.stringify(VARIABLES_PESAJE),
+        contenido: ZPL_PESAJE_INDIVIDUAL,
+        variables: VARIABLES_PESAJE,
         diasConsumo: 30,
         temperaturaMax: 5.0,
         activo: true,
         esDefault: false
       },
-      {
-        nombre: 'Media Res - Zebra ZT230 (203dpi)',
-        codigo: 'MEDIA_RES_ZEBRA_203',
-        tipo: TipoRotulo.MEDIA_RES,
-        categoria: 'MEDIA_RES',
-        tipoImpresora: 'ZEBRA',
-        modeloImpresora: 'ZT230',
-        ancho: 80,
-        alto: 120,
-        dpi: 203,
-        contenido: ZPL_MEDIA_RES_203,
-        variables: JSON.stringify(VARIABLES_MEDIA_RES),
-        diasConsumo: 30,
-        temperaturaMax: 5.0,
-        activo: true,
-        esDefault: true
-      },
-      {
-        nombre: 'Menudencia - Zebra ZT230 (203dpi)',
-        codigo: 'MENUDENCIA_ZEBRA_203',
-        tipo: TipoRotulo.MENUDENCIA,
-        categoria: 'MENUDENCIA',
-        tipoImpresora: 'ZEBRA',
-        modeloImpresora: 'ZT230',
-        ancho: 60,
-        alto: 80,
-        dpi: 203,
-        contenido: ZPL_MENUDENCIA_203,
-        variables: JSON.stringify(VARIABLES_MENUDENCIA),
-        diasConsumo: 30,
-        temperaturaMax: 5.0,
-        activo: true,
-        esDefault: true
-      }
-    ]
-
-    // Rótulos DPL (Datamax Mark II)
-    const rotulosDatamax = [
+      // DATAMAX MARK II
       {
         nombre: 'Pesaje Individual - Datamax Mark II',
-        codigo: 'PESAJE_IND_DATAMAX',
+        codigo: 'PESAJE_IND_MARK2',
         tipo: TipoRotulo.PESAJE_INDIVIDUAL,
         categoria: 'PESAJE_INDIVIDUAL',
         tipoImpresora: 'DATAMAX',
@@ -270,15 +189,34 @@ export async function POST() {
         alto: 50,
         dpi: 203,
         contenido: DPL_PESAJE_INDIVIDUAL,
-        variables: JSON.stringify(VARIABLES_PESAJE_DPL),
+        variables: VARIABLES_PESAJE,
         diasConsumo: 30,
         temperaturaMax: 5.0,
         activo: true,
         esDefault: false
       },
+      // MEDIA RES - ZEBRA
+      {
+        nombre: 'Media Res - Zebra ZT230',
+        codigo: 'MEDIA_RES_ZT230',
+        tipo: TipoRotulo.MEDIA_RES,
+        categoria: 'MEDIA_RES',
+        tipoImpresora: 'ZEBRA',
+        modeloImpresora: 'ZT230',
+        ancho: 80,
+        alto: 120,
+        dpi: 203,
+        contenido: ZPL_MEDIA_RES,
+        variables: VARIABLES_MEDIA_RES,
+        diasConsumo: 30,
+        temperaturaMax: 5.0,
+        activo: true,
+        esDefault: true
+      },
+      // MEDIA RES - DATAMAX
       {
         nombre: 'Media Res - Datamax Mark II',
-        codigo: 'MEDIA_RES_DATAMAX',
+        codigo: 'MEDIA_RES_MARK2',
         tipo: TipoRotulo.MEDIA_RES,
         categoria: 'MEDIA_RES',
         tipoImpresora: 'DATAMAX',
@@ -287,15 +225,34 @@ export async function POST() {
         alto: 120,
         dpi: 203,
         contenido: DPL_MEDIA_RES,
-        variables: JSON.stringify(VARIABLES_MEDIA_RES_DPL),
+        variables: VARIABLES_MEDIA_RES,
         diasConsumo: 30,
         temperaturaMax: 5.0,
         activo: true,
         esDefault: false
       },
+      // MENUDENCIA - ZEBRA
+      {
+        nombre: 'Menudencia - Zebra ZT230',
+        codigo: 'MENUDENCIA_ZT230',
+        tipo: TipoRotulo.MENUDENCIA,
+        categoria: 'MENUDENCIA',
+        tipoImpresora: 'ZEBRA',
+        modeloImpresora: 'ZT230',
+        ancho: 60,
+        alto: 80,
+        dpi: 203,
+        contenido: ZPL_MENUDENCIA,
+        variables: VARIABLES_MENUDENCIA,
+        diasConsumo: 30,
+        temperaturaMax: 5.0,
+        activo: true,
+        esDefault: true
+      },
+      // MENUDENCIA - DATAMAX
       {
         nombre: 'Menudencia - Datamax Mark II',
-        codigo: 'MENUDENCIA_DATAMAX',
+        codigo: 'MENUDENCIA_MARK2',
         tipo: TipoRotulo.MENUDENCIA,
         categoria: 'MENUDENCIA',
         tipoImpresora: 'DATAMAX',
@@ -304,13 +261,7 @@ export async function POST() {
         alto: 80,
         dpi: 203,
         contenido: DPL_MENUDENCIA,
-        variables: JSON.stringify([
-          { variable: '{PRODUCTO}', campo: 'nombreProducto', descripcion: 'Producto' },
-          { variable: '{FECHA}', campo: 'fechaFaena', descripcion: 'Fecha' },
-          { variable: '{PESO}', campo: 'peso', descripcion: 'Peso' },
-          { variable: '{FECHA_VENC}', campo: 'fechaVencimiento', descripcion: 'Vencimiento' },
-          { variable: '{CODIGO_BARRAS}', campo: 'codigoBarras', descripcion: 'Código barras' },
-        ]),
+        variables: VARIABLES_MENUDENCIA,
         diasConsumo: 30,
         temperaturaMax: 5.0,
         activo: true,
@@ -318,22 +269,20 @@ export async function POST() {
       }
     ]
 
-    const todosRotulos = [...rotulosZebra, ...rotulosDatamax]
     let creados = 0
     let actualizados = 0
+    const errores: string[] = []
 
-    for (const rotulo of todosRotulos) {
+    for (const rotulo of rotulos) {
       try {
-        // Verificar si ya existe por código
         const existente = await prisma.rotulo.findUnique({
           where: { codigo: rotulo.codigo }
         })
-        
+
         if (existente) {
-          // Actualizar contenido
           await prisma.rotulo.update({
             where: { codigo: rotulo.codigo },
-            data: { 
+            data: {
               contenido: rotulo.contenido,
               variables: rotulo.variables
             }
@@ -344,16 +293,17 @@ export async function POST() {
           creados++
         }
       } catch (e) {
-        console.error(`Error procesando rótulo ${rotulo.codigo}:`, e)
+        errores.push(`${rotulo.codigo}: ${String(e)}`)
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Rótulos inicializados correctamente',
       creados,
       actualizados,
       total: creados + actualizados,
+      errores: errores.length > 0 ? errores : undefined,
       impresorasSoportadas: [
         { marca: 'Zebra', modelos: ['ZT410 (300 DPI)', 'ZT230 (203 DPI)'], formato: 'ZPL' },
         { marca: 'Datamax', modelos: ['Mark II'], formato: 'DPL' }
@@ -361,27 +311,27 @@ export async function POST() {
     })
   } catch (error) {
     console.error('Error al inicializar rótulos:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al inicializar rótulos' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      success: false,
+      error: String(error)
+    }, { status: 500 })
   }
 }
 
-// GET - Verificar estado de rótulos
+// ==================== GET - VER ESTADO ====================
+
 export async function GET() {
   try {
     const total = await prisma.rotulo.count()
     const activos = await prisma.rotulo.count({ where: { activo: true } })
     const defaults = await prisma.rotulo.count({ where: { esDefault: true } })
-    
+
     const zebra = await prisma.rotulo.count({ where: { tipoImpresora: 'ZEBRA' } })
     const datamax = await prisma.rotulo.count({ where: { tipoImpresora: 'DATAMAX' } })
-    
-    const porCategoria = await prisma.rotulo.groupBy({
-      by: ['categoria'],
-      _count: { id: true },
-      where: { activo: true }
+
+    const lista = await prisma.rotulo.findMany({
+      select: { codigo: true, nombre: true, tipo: true, categoria: true, tipoImpresora: true, modeloImpresora: true },
+      orderBy: { codigo: 'asc' }
     })
 
     return NextResponse.json({
@@ -389,24 +339,13 @@ export async function GET() {
       total,
       activos,
       defaults,
-      porTipoImpresora: {
-        zebra,
-        datamax
-      },
-      impresorasSoportadas: [
-        { marca: 'Zebra', modelos: ['ZT410', 'ZT230'], formato: 'ZPL', dpi: [203, 300] },
-        { marca: 'Datamax', modelos: ['Mark II'], formato: 'DPL', dpi: [203] }
-      ],
-      porCategoria: porCategoria.map(p => ({
-        categoria: p.categoria,
-        cantidad: p._count.id
-      }))
+      porTipo: { zebra, datamax },
+      rotulos: lista
     })
   } catch (error) {
-    console.error('Error al obtener estado de rótulos:', error)
-    return NextResponse.json(
-      { success: false, error: 'Error al obtener estado' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      success: false,
+      error: String(error)
+    }, { status: 500 })
   }
 }
