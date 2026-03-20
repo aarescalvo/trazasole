@@ -1177,11 +1177,11 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
           </Card>
         </TabsContent>
 
-        {/* PESAR ANIMALES - Layout sin scroll */}
-        <TabsContent value="pesar" className="flex-1 overflow-hidden p-4">
+        {/* PESAR ANIMALES - Layout con scroll */}
+        <TabsContent value="pesar" className="flex-1 overflow-auto p-4">
           <div className="h-full grid grid-cols-3 gap-4">
             {/* Panel Izquierdo: Formulario de Pesaje */}
-            <Card className="col-span-2 border-0 shadow-sm flex flex-col h-full overflow-hidden">
+            <Card className="col-span-2 border-0 shadow-sm flex flex-col h-full overflow-auto">
               <CardHeader className="bg-green-50 py-2 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">{tropaSeleccionada?.codigo}</CardTitle>
@@ -1193,7 +1193,7 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 p-4 overflow-hidden flex flex-col">
+              <CardContent className="flex-1 p-4 overflow-auto flex flex-col">
                 {animales.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-center">
                     <div>
@@ -1280,19 +1280,28 @@ export function PesajeIndividualModule({ tropas: propTropas, operador }: { tropa
                       </div>
                     </div>
 
-                    {/* Raza - Compacto */}
+                    {/* Raza - Botones */}
                     <div className="mb-4">
                       <Label className="text-xs mb-1 block">Raza</Label>
-                      <Select value={raza} onValueChange={setRaza}>
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Seleccionar..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {razasActuales.map((r) => (
-                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-wrap gap-1">
+                        {razasActuales.map((r) => {
+                          const isSelected = raza === r
+                          return (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => setRaza(r)}
+                              className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                                isSelected 
+                                  ? 'bg-amber-500 text-white' 
+                                  : 'bg-white border hover:border-amber-300 hover:bg-amber-50'
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
 
                     {/* Botón Registrar */}

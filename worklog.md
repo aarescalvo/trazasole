@@ -945,6 +945,51 @@ Stage Summary:
 - **Base de datos PostgreSQL creada** ✅
 
 ---
+Task ID: 1560
+Agent: main
+Task: Agregar script de backup y corregir pesaje individual
+
+Work Log:
+
+#### 1. Script de Backup Creado
+**Archivo:** `backup-sistema.bat`
+- Crea backups de PostgreSQL con fecha y hora
+- Guarda en carpeta `backups/`
+- Formato: `backup_YYYY-MM-DD_HH-MM_vX.X.X.sql`
+- Usa pg_dump de PostgreSQL 16
+- Lista backups existentes al final
+
+#### 2. Correcciones en Pesaje Individual
+**Archivo:** `src/components/pesaje-individual-module.tsx`
+
+**Problema 1 - Sin scroll:**
+- Cambiado `overflow-hidden` a `overflow-auto` en TabsContent "pesar"
+- Cambiado en Card principal del formulario
+- Cambiado en CardContent del formulario
+- Ahora el botón "Registrar" es visible
+
+**Problema 2 - Raza con menú desplegable:**
+- Cambiado Select por botones individuales
+- Igual que la selección de Tipo de animal
+- Más rápido de seleccionar en touch/pantallas pequeñas
+- Colores: amber-500 para seleccionado, blanco con hover para no seleccionado
+
+#### 3. Scripts Disponibles
+| Script | Función |
+|--------|---------|
+| `iniciar-servidor.bat` | Inicia el servidor |
+| `detener-servidor.bat` | Detiene procesos bun/node |
+| `actualizar-sistema.bat` | Descarga actualizaciones |
+| `reiniciar-actualizado.bat` | Detiene + Actualiza + Inicia |
+| `backup-sistema.bat` | Crea backup de BD |
+
+Stage Summary:
+- **Script de backup creado** ✅
+- **Scroll arreglado en pesaje individual** ✅
+- **Raza cambiado a botones** ✅
+- **Lint sin errores** ✅
+
+---
 ## 📋 CHECKLIST DE FINALIZACIÓN (OBLIGATORIO)
 
 Al terminar CADA sesión de trabajo, verificar:
