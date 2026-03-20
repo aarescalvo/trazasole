@@ -1112,8 +1112,64 @@ Al terminar CADA sesión de trabajo, verificar:
 - **Minor (0.X.0)**: Nuevas funcionalidades
 - **Patch (0.0.X)**: Bug fixes, mejoras menores
 
-### Versión actual: **3.1.3**
-### Próxima versión sugerida: **3.1.4**
+### Versión actual: **3.1.4**
+### Próxima versión sugerida: **3.1.5**
+
+---
+Task ID: 1566
+Agent: main
+Task: Agregar modal de edición de rótulos con vista previa en tiempo real
+
+Work Log:
+
+#### 1. Funcionalidad Agregada
+**Archivo:** `src/components/config-rotulos/index.tsx`
+
+**Nuevos estados:**
+- `modalEditar` - Controla la visibilidad del modal
+- `editandoContenido` - Contenido ZPL/DPL del rótulo
+- `editandoNombre` - Nombre del rótulo
+- `guardando` - Estado de guardado
+
+**Nuevas funciones:**
+- `handleEditar(rotulo)` - Abre modal con datos del rótulo
+- `handleGuardarEdicion()` - Guarda cambios en la API
+- `insertarVariable(variable)` - Inserta variable en el cursor
+- `previewEdicion` - Vista previa en tiempo real con datos de prueba
+
+**UI del modal de edición:**
+- Panel izquierdo: Lista de variables disponibles (click para insertar)
+- Panel derecho: Editor de contenido + vista previa en tiempo real
+- Botón de guardar cambios
+
+#### 2. Cómo Editar un Rótulo
+1. Ir a **Configuración → Rótulos**
+2. Click en el ícono de lápiz (Editar)
+3. Modificar el contenido ZPL/DPL
+4. Click en variables para insertarlas
+5. Ver vista previa en tiempo real
+6. Click en **Guardar Cambios**
+
+#### 3. Variables Soportadas
+| Variable | Uso | Ejemplo |
+|----------|-----|---------|
+| `{{NUMERO}}` | Número de animal | 15 |
+| `{{TROPA}}` | Código de tropa | B 2026 0012 |
+| `{{TIPO}}` | Tipo de animal | VA, TO, NO |
+| `{{PESO}}` | Peso vivo | 452 |
+| `{{CODIGO}}` | Código completo | B20260012-015 |
+| `{{RAZA}}` | Raza del animal | Angus |
+| `{{FECHA}}` | Fecha actual | 20/03/2026 |
+| `{{PRODUCTO}}` | Nombre producto | MEDIA RES |
+| `{{FECHA_VENC}}` | Fecha vencimiento | 19/04/2026 |
+| `{{CODIGO_BARRAS}}` | Código de barras | B202600120151 |
+
+Stage Summary:
+- **Modal de edición implementado** ✅
+- **Vista previa en tiempo real** ✅
+- **Inserción de variables con click** ✅
+- **Versión actualizada a 3.1.4** ✅
+- **Push a ambos repositorios** ✅
 
 ---
 Task ID: 1565
