@@ -1112,8 +1112,70 @@ Al terminar CADA sesión de trabajo, verificar:
 - **Minor (0.X.0)**: Nuevas funcionalidades
 - **Patch (0.0.X)**: Bug fixes, mejoras menores
 
-### Versión actual: **3.1.2**
-### Próxima versión sugerida: **3.1.3**
+### Versión actual: **3.1.3**
+### Próxima versión sugerida: **3.1.4**
+
+---
+Task ID: 1565
+Agent: main
+Task: Reescribir API init-zpl con plantillas completas para Zebra y Datamax
+
+Work Log:
+
+#### 1. Problema Identificado
+- La API init-zpl anterior tenía errores en los nombres de campos
+- No coincidía con el schema Prisma del modelo Rotulo
+- Los rótulos no se creaban correctamente
+
+#### 2. Solución Implementada
+**Archivo:** `src/app/api/rotulos/init-zpl/route.ts` - REESCRITO COMPLETO
+
+**Plantillas ZPL (Zebra):**
+- ZT230 (203 DPI): Pesaje Individual, Media Res, Menudencia
+- ZT410 (300 DPI): Pesaje Individual
+
+**Plantillas DPL (Datamax):**
+- Mark II (203 DPI): Pesaje Individual, Media Res, Menudencia
+
+**Estructura de datos corregida:**
+```typescript
+{
+  nombre: string,
+  codigo: string,
+  tipo: TipoRotulo,
+  categoria: string,
+  tipoImpresora: 'ZEBRA' | 'DATAMAX',
+  modeloImpresora: 'ZT230' | 'ZT410' | 'MARK_II',
+  ancho: number,    // mm
+  alto: number,     // mm
+  dpi: number,      // 203 o 300
+  contenido: string, // ZPL o DPL
+  variables: string, // JSON
+  diasConsumo: number,
+  temperaturaMax: number,
+  activo: boolean,
+  esDefault: boolean
+}
+```
+
+#### 3. Rótulos Creados (7 total)
+| Código | Tipo | Impresora | DPI |
+|--------|------|-----------|-----|
+| PESAJE_IND_ZT230 | Pesaje Individual | Zebra ZT230 | 203 |
+| PESAJE_IND_ZT410 | Pesaje Individual | Zebra ZT410 | 300 |
+| PESAJE_IND_MARK2 | Pesaje Individual | Datamax Mark II | 203 |
+| MEDIA_RES_ZT230 | Media Res | Zebra ZT230 | 203 |
+| MEDIA_RES_MARK2 | Media Res | Datamax Mark II | 203 |
+| MENUDENCIA_ZT230 | Menudencia | Zebra ZT230 | 203 |
+| MENUDENCIA_MARK2 | Menudencia | Datamax Mark II | 203 |
+
+Stage Summary:
+- **API reescrita desde cero** ✅
+- **7 rótulos predefinidos listos** ✅
+- **Plantillas ZPL para Zebra ZT230/ZT410** ✅
+- **Plantillas DPL para Datamax Mark II** ✅
+- **Versión actualizada a 3.1.3** ✅
+- **Push a ambos repositorios** ✅
 
 ---
 Task ID: 1564
