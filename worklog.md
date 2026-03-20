@@ -1112,8 +1112,36 @@ Al terminar CADA sesión de trabajo, verificar:
 - **Minor (0.X.0)**: Nuevas funcionalidades
 - **Patch (0.0.X)**: Bug fixes, mejoras menores
 
-### Versión actual: **3.1.1**
-### Próxima versión sugerida: **3.1.2**
+### Versión actual: **3.1.2**
+### Próxima versión sugerida: **3.1.3**
+
+---
+Task ID: 1564
+Agent: main
+Task: Fix error al cargar rótulos en producción
+
+Work Log:
+
+#### 1. Error Detectado
+```
+TypeError: rotulos.reduce is not a function
+```
+
+#### 2. Causa
+La API `/api/rotulos` devuelve `{success: true, data: [...]}` pero el componente hacía:
+```typescript
+setRotulos(data) // data es un objeto, no un array
+```
+
+#### 3. Solución
+```typescript
+setRotulos(Array.isArray(data) ? data : (data.data || []))
+```
+
+Stage Summary:
+- **Error corregido** ✅
+- **Versión actualizada a 3.1.2** ✅
+- **Push a ambos repositorios** ✅
 
 ---
 Task ID: 1563
