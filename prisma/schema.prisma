@@ -1403,10 +1403,13 @@ model Rotulo {
   // Estado
   activo            Boolean       @default(true)
   esDefault         Boolean       @default(false)  // Si es el rótulo por defecto del tipo
-  
+
+  // Elementos para editor visual
+  elementos         RotuloElemento[]
+
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-  
+
   @@index([tipo])
   @@index([activo])
   @@index([tipoImpresora])
@@ -2224,17 +2227,65 @@ model CodigoBarrasConfig {
   prefijo     String            // MR, CD, PR, CJ, SB, MN
   formato     String            // MR-TROPA-GARRON-LADO-FECHA
   descripcion String?
-  
+
   // Variables disponibles para el formato
   variables   String?  // JSON con lista de variables: ["TROPA", "GARRON", "LADO", "FECHA"]
-  
+
   // Estado
   activo      Boolean  @default(true)
   esDefault   Boolean  @default(false)
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([tipo])
   @@index([activo])
+}
+
+// ==================== ELEMENTOS DE RÓTULO (EDITOR VISUAL) ====================
+
+model RotuloElemento {
+  id            String   @id @default(cuid())
+  rotuloId      String
+  rotulo        Rotulo   @relation(fields: [rotuloId], references: [id], onDelete: Cascade)
+
+  // Tipo de elemento
+  tipo          String   // TEXTO, CODIGO_BARRAS, LINEA, RECTANGULO, IMAGEN
+
+  // Datos del campo (para TEXTO y CODIGO_BARRAS)
+  campo         String?  // Variable: numeroAnimal, peso, fecha, etc. (null = texto fijo)
+  textoFijo     String?  // Texto estático si campo es null
+
+  // Posición y tamaño (en puntos según DPI)
+  posX          Int      @default(0)    // Posición X en puntos
+  posY          Int      @default(0)    // Posición Y en puntos
+  ancho         Int?     @default(100)  // Ancho en puntos
+  alto          Int?     @default(30)   // Alto en puntos
+
+  // Fuente (para TEXTO)
+  fuente        String?  @default("0")  // ZPL: 0-9, A-Z; DPL: nombre de fuente
+  tamano        Int?     @default(10)   // Tamaño de fuente
+  negrita       Boolean  @default(false)
+  anchoFuente   Int?     @default(0)    // Ancho de carácter en puntos (ZPL)
+
+  // Alineación
+  alineacion    String?  @default("LEFT")  // LEFT, CENTER, RIGHT
+
+  // Código de barras
+  tipoCodigo    String?  @default("CODE128")  // CODE128, CODE39, EAN13, etc.
+  altoCodigo    Int?     @default(60)    // Alto del código de barras
+  mostrarTexto  Boolean  @default(true)  // Mostrar texto debajo del código
+
+  // Líneas y rectángulos
+  grosorLinea   Int?     @default(2)     // Grosor en puntos
+  color         String?  @default("B")   // B=Black, W=White
+
+  // Orden (z-index)
+  orden         Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([rotuloId])
+  @@index([tipo])
 }

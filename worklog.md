@@ -1334,3 +1334,81 @@ git commit -m "v3.1.0 - Soporte impresoras Zebra ZT410/ZT230 y Datamax Mark II"
 - **NUNCA** usar `git reset --hard` sin autorización
 - **NUNCA** usar `bun run db:reset` sin autorización (borra toda la BD)
 - Siempre hacer backup antes de operaciones riesgosas
+
+---
+Task ID: 1567
+Agent: main
+Task: Editor visual de rótulos estilo drag and drop con conversión a ZPL/DPL
+
+Work Log:
+
+#### 1. Funcionalidad Solicitada
+- Usuario solicitó un editor visual de rótulos tipo "paint"
+- Poder diseñar rótulos con campos drag and drop
+- Conversión automática a código ZPL/DPL para impresoras
+
+#### 2. Implementación Realizada
+**Archivo:** `src/components/config-rotulos/index.tsx`
+
+**Editor Visual con Canvas:**
+- Canvas de 400x250 píxeles (proporcional a etiqueta 4"x2.5")
+- Elementos arrastrables con drag and drop
+- Posicionamiento preciso con coordenadas X,Y
+- Redimensionamiento de elementos
+- Zoom in/out para precisión
+
+**Tipos de Elementos:**
+- **Texto Fijo**: Etiquetas estáticas (ej: "TROPA:", "PESO:")
+- **Variables Dinámicas**: {{NUMERO}}, {{TROPA}}, {{PESO}}, etc.
+- **Código de Barras**: Automáticamente se agrega zona de barras
+- **Líneas**: Separadores horizontales/verticales
+
+**Panel de Propiedades:**
+- Fuente: Arial, Helvetica, Courier, Times
+- Tamaño: 8-48pt
+- Alineación: Izquierda, Centro, Derecha
+- Estilo: Normal, Negrita
+- Posición X/Y editable manualmente
+
+**Conversión a ZPL/DPL:**
+- Botón "Generar Código" crea ZPL para Zebra o DPL para Datamax
+- Mapeo automático de coordenadas canvas → DPI impresora
+- Vista previa del código generado
+- Guardado automático del rótulo
+
+#### 3. Variables Disponibles
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| {{NUMERO}} | Número de animal | 15 |
+| {{TROPA}} | Código de tropa | B 2026 0012 |
+| {{TIPO}} | Tipo de animal | VA, TO, NO |
+| {{PESO}} | Peso vivo | 452 kg |
+| {{CODIGO}} | Código completo | B20260012-015 |
+| {{RAZA}} | Raza del animal | Angus |
+| {{FECHA}} | Fecha actual | 20/03/2026 |
+| {{FECHA_VENC}} | Fecha vencimiento | 19/04/2026 |
+| {{PRODUCTO}} | Nombre producto | MEDIA RES |
+| {{CODIGO_BARRAS}} | Código barras | B202600120151 |
+
+#### 4. Cómo Usar el Editor
+1. Ir a **Configuración → Rótulos**
+2. Click en **"Editor Visual"** 
+3. Seleccionar tipo de impresora (Zebra/Datamax)
+4. Agregar elementos desde el panel izquierdo
+5. Arrastrar y soltar en el canvas
+6. Ajustar propiedades en el panel derecho
+7. Click **"Generar Código"** para ver ZPL/DPL
+8. Click **"Guardar"** para persistir
+
+Stage Summary:
+- **Editor visual drag and drop implementado** ✅
+- **Conversión automática a ZPL/DPL** ✅
+- **Variables dinámicas configurables** ✅
+- **Vista previa en tiempo real** ✅
+- **Versión actualizada a 3.1.5** ✅
+- **Pendiente: Push a ambos repositorios**
+
+---
+### Versión actual: **3.1.5**
+### Próxima versión sugerida: **3.1.6**
+
