@@ -1412,3 +1412,55 @@ Stage Summary:
 ### Versión actual: **3.1.5**
 ### Próxima versión sugerida: **3.1.6**
 
+
+---
+Task ID: 1568
+Agent: main
+Task: Restaurar cambios perdidos en ticket de pesaje
+
+Work Log:
+
+#### 1. Problema Identificado
+- Cambios realizados en sesión anterior se perdieron
+- El ticket de pesaje no tenía:
+  - Logo del frigorífico
+  - Dirección de la empresa
+  - Firma del portero
+  - "Firma Conforme Chofer" (decía solo "Firma Conforme")
+
+#### 2. Cambios Restaurados
+**Archivo:** `src/components/pesaje-camiones/ticketPrint.ts`
+
+**Header mejorado:**
+- Logo SVG con "SOLEMAR ALIMENTARIA"
+- Nombre completo: "SOLEMAR ALIMENTARIA S.A."
+- Dirección: "Ruta Nacional 12 Km 1234 - Corrientes, Argentina"
+- Teléfono y CUIT (placeholders editables)
+
+**Sección de firmas:**
+- Dos firmas lado a lado:
+  - "Firma Portero"
+  - "Firma Conforme Chofer"
+
+**Footer agregado:**
+- Mensaje de validez del ticket
+- Instrucciones de conservación
+
+#### 3. Datos Editables
+El usuario puede modificar en el código:
+- LOGO_BASE64: Cambiar por logo real en base64 o SVG
+- Dirección y teléfono
+- CUIT de la empresa
+
+Stage Summary:
+- **Logo agregado al ticket** ✅
+- **Dirección del frigorífico agregada** ✅
+- **Firma del portero agregada** ✅
+- **Firma Conforme cambiada a "Firma Conforme Chofer"** ✅
+- **Versión actualizada a 3.1.6** ✅
+- **Pendiente: Push a ambos repositorios**
+
+---
+### Versión actual: **3.1.6**
+### Próxima versión sugerida: **3.1.7**
+

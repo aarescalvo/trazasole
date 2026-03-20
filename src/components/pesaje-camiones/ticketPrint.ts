@@ -1,12 +1,21 @@
 import { TIPOS_PESAJE } from './constants'
 import type { Pesaje } from './types'
 
+// Logo en base64 (puedes reemplazarlo con el logo real)
+const LOGO_BASE64 = `
+<svg width="120" height="50" viewBox="0 0 120 50" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="50" fill="#1e3a5f"/>
+  <text x="60" y="28" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">SOLEMAR</text>
+  <text x="60" y="42" text-anchor="middle" fill="#90cdf4" font-family="Arial" font-size="9">ALIMENTARIA</text>
+</svg>
+`
+
 // Imprimir ticket individual
 export function imprimirTicket(pesaje: Pesaje, duplicado: boolean = false) {
   const tipoLabel = TIPOS_PESAJE.find(t => t.id === pesaje.tipo)?.label || pesaje.tipo
   const copia = duplicado ? ' - COPIA' : ''
   
-  const printWindow = window.open('', '_blank', 'width=400,height=600')
+  const printWindow = window.open('', '_blank', 'width=400,height=700')
   if (!printWindow) return
   
   printWindow.document.write(`
@@ -15,22 +24,33 @@ export function imprimirTicket(pesaje: Pesaje, duplicado: boolean = false) {
     <head>
       <title>Ticket #${pesaje.numeroTicket}${copia}</title>
       <style>
-        body { font-family: monospace; font-size: 12px; padding: 10mm; max-width: 80mm; }
-        .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 10px; }
-        .empresa { font-size: 16px; font-weight: bold; }
-        .ticket { font-size: 20px; font-weight: bold; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; padding: 8mm; max-width: 80mm; }
+        .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 8px; margin-bottom: 8px; }
+        .logo { margin-bottom: 5px; }
+        .empresa { font-size: 14px; font-weight: bold; margin-top: 3px; }
+        .direccion { font-size: 9px; color: #333; margin-top: 2px; line-height: 1.3; }
+        .ticket { font-size: 18px; font-weight: bold; margin-top: 5px; }
         .row { display: flex; justify-content: space-between; padding: 2px 0; }
         .label { font-weight: bold; }
-        .section { border-top: 1px dashed black; padding-top: 8px; margin-top: 8px; }
-        .peso { font-size: 14px; font-weight: bold; }
-        .firma { margin-top: 20px; border-top: 1px solid black; padding-top: 10px; }
-        .firma-linea { border-bottom: 1px solid black; height: 30px; margin-top: 5px; }
+        .section { border-top: 1px dashed black; padding-top: 6px; margin-top: 6px; }
+        .peso { font-size: 12px; font-weight: bold; }
+        .firmas { margin-top: 15px; display: flex; justify-content: space-between; gap: 10px; }
+        .firma-box { flex: 1; text-align: center; }
+        .firma-label { font-size: 9px; margin-bottom: 3px; }
+        .firma-linea { border-bottom: 1px solid black; height: 25px; }
+        .footer { margin-top: 10px; text-align: center; font-size: 8px; color: #666; border-top: 1px solid #ccc; padding-top: 5px; }
       </style>
     </head>
     <body>
       <div class="header">
-        <div class="empresa">SOLEMAR ALIMENTARIA</div>
-        <div>TICKET DE PESAJE${copia}</div>
+        <div class="logo">${LOGO_BASE64}</div>
+        <div class="empresa">SOLEMAR ALIMENTARIA S.A.</div>
+        <div class="direccion">
+          Ruta Nacional 12 Km 1234 - Corrientes, Argentina<br>
+          Tel: (03783) 42-XXXX - CUIT: 30-XXXXXXXX-X
+        </div>
+        <div style="margin-top: 5px;">TICKET DE PESAJE${copia}</div>
         <div class="ticket">Nº ${String(pesaje.numeroTicket).padStart(6, '0')}</div>
       </div>
       
@@ -70,12 +90,23 @@ export function imprimirTicket(pesaje: Pesaje, duplicado: boolean = false) {
         <div style="font-weight: bold; text-align: center; margin-bottom: 5px;">PESOS</div>
         <div class="row peso"><span class="label">Bruto:</span><span>${pesaje.pesoBruto?.toLocaleString() || '-'} kg</span></div>
         <div class="row peso"><span class="label">Tara:</span><span>${pesaje.pesoTara?.toLocaleString() || '-'} kg</span></div>
-        <div class="row peso" style="font-size: 16px;"><span class="label">NETO:</span><span style="font-weight: bold;">${pesaje.pesoNeto?.toLocaleString() || '-'} kg</span></div>
+        <div class="row peso" style="font-size: 14px;"><span class="label">NETO:</span><span style="font-weight: bold;">${pesaje.pesoNeto?.toLocaleString() || '-'} kg</span></div>
       </div>
       
-      <div class="firma">
-        <div style="text-align: center;">Firma Conforme</div>
-        <div class="firma-linea"></div>
+      <div class="firmas">
+        <div class="firma-box">
+          <div class="firma-label">Firma Portero</div>
+          <div class="firma-linea"></div>
+        </div>
+        <div class="firma-box">
+          <div class="firma-label">Firma Conforme Chofer</div>
+          <div class="firma-linea"></div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        Este ticket es válido como comprobante de pesaje<br>
+        Conservar para cualquier reclamo
       </div>
       
       <script>
@@ -115,7 +146,10 @@ export function imprimirReporte(pesajes: Pesaje[], fechaDesde: string, fechaHast
       </style>
     </head>
     <body>
-      <h1>SOLEMAR ALIMENTARIA - Reporte de Pesajes</h1>
+      <h1>SOLEMAR ALIMENTARIA S.A. - Reporte de Pesajes</h1>
+      <p style="text-align: center; font-size: 12px; color: #666;">
+        Ruta Nacional 12 Km 1234 - Corrientes, Argentina
+      </p>
       <p><strong>Período:</strong> ${fechaDesde ? new Date(fechaDesde).toLocaleDateString('es-AR') : 'Inicio'} - ${fechaHasta ? new Date(fechaHasta).toLocaleDateString('es-AR') : 'Hoy'}</p>
       <p><strong>Generado:</strong> ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}</p>
       
