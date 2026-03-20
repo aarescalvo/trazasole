@@ -15,9 +15,10 @@ import { toast } from 'sonner'
 import { 
   Tag, Loader2, Power, Trash2, Upload, Eye, FileText, Printer, 
   Download, Copy, Info, Variable, FileCode, Check, ChevronDown, ChevronRight,
-  Settings, Star, Play, X
+  Settings, Star, Play, X, Edit
 } from 'lucide-react'
 import { TipoRotulo } from '@prisma/client'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Operador { id: string; nombre: string; rol: string }
 interface Props { operador: Operador }
@@ -85,9 +86,15 @@ export function ConfigRotulosModule({ operador }: Props) {
   const [modalImportar, setModalImportar] = useState(false)
   const [modalAsignar, setModalAsignar] = useState(false)
   const [modalPreview, setModalPreview] = useState(false)
+  const [modalEditar, setModalEditar] = useState(false)
   const [rotuloSeleccionado, setRotuloSeleccionado] = useState<Rotulo | null>(null)
   const [previewProcesado, setPreviewProcesado] = useState('')
   const [imprimiendo, setImprimiendo] = useState(false)
+  
+  // Formulario de edición
+  const [editandoContenido, setEditandoContenido] = useState('')
+  const [editandoNombre, setEditandoNombre] = useState('')
+  const [guardando, setGuardando] = useState(false)
   
   // Formulario de importación
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -444,6 +451,54 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
     URL.revokeObjectURL(url)
   }
 
+  // Abrir modal de edición
+  const handleEditar = (rotulo: Rotulo) => {
+    setRotuloSeleccionado(rotulo)
+    setEditandoNombre(rotulo.nombre)
+    setEditandoContenido(rotulo.contenido)
+    setModalEditar(true)
+  }
+
+  // Guardar edición
+  const handleGuardarEdicion = async () => {
+    if (!rotuloSeleccionado) return
+    
+    setGuardando(true)
+    try {
+      const response = await fetch(`/api/rotulos/${rotuloSeleccionado.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...rotuloSeleccionado,
+          nombre: editandoNombre,
+          contenido: editandoContenido
+        })
+      })
+      
+      if (response.ok) {
+        toast.success('Rótulo actualizado')
+        setModalEditar(false)
+        cargarRotulos()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Error al guardar')
+      }
+    } catch (error) {
+      toast.error('Error al guardar cambios')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  // Insertar variable en el cursor
+  const insertarVariable = (variable: string) => {
+    const formato = `{{${variable}}}`
+    setEditandoContenido(prev => prev + formato)
+  }
+
+  // Vista previa en tiempo real del contenido editado
+  const previewEdicion = procesarZplConDatos(editandoContenido, datosPrueba)
+
   // Reset formulario
   const resetForm = () => {
     setArchivo(null)
@@ -595,6 +650,15 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
                               title="Copiar código"
                             >
                               <Copy className="w-4 h-4 text-stone-500" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditar(rotulo)}
+                              title="Editar rótulo"
+                              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            >
+                              <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -969,6 +1033,131 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setModalPreview(false)}>
               Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Editar */}
+      <Dialog open={modalEditar} onOpenChange={setModalEditar}>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-amber-500" />
+              Editar Rótulo
+            </DialogTitle>
+            <DialogDescription>
+              Modificá el contenido ZPL/DPL. Usá variables como {'{{TROPA}}'}, {'{{PESO}}'}, etc.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-4">
+            {/* Panel izquierdo - Variables disponibles */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Variable className="w-4 h-4" />
+                Variables Disponibles
+              </Label>
+              <ScrollArea className="h-[400px] border rounded-md p-2 bg-stone-50">
+                <div className="space-y-1">
+                  {Object.entries(datosPrueba).map(([key, value]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => insertarVariable(key)}
+                      className="w-full text-left p-2 rounded hover:bg-amber-100 transition-colors group"
+                    >
+                      <code className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded group-hover:bg-amber-200">
+                        {`{{${key}}}`}
+                      </code>
+                      <span className="text-xs text-stone-500 ml-2">{value}</span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+              <p className="text-xs text-stone-500">
+                Click en una variable para insertarla
+              </p>
+            </div>
+
+            {/* Panel central - Editor */}
+            <div className="col-span-2 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Nombre del Rótulo</Label>
+                  <Input 
+                    value={editandoNombre} 
+                    onChange={(e) => setEditandoNombre(e.target.value)}
+                    placeholder="Nombre descriptivo"
+                  />
+                </div>
+                <div>
+                  <Label>Tipo</Label>
+                  <Input 
+                    value={rotuloSeleccionado?.tipoImpresora === 'DATAMAX' ? 'DPL (Datamax)' : 'ZPL (Zebra)'}
+                    disabled
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="flex items-center justify-between">
+                  <span>Contenido ZPL/DPL</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigator.clipboard.writeText(editandoContenido)}
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copiar
+                  </Button>
+                </Label>
+                <ScrollArea className="h-[250px] border rounded-md bg-stone-900">
+                  <textarea
+                    value={editandoContenido}
+                    onChange={(e) => setEditandoContenido(e.target.value)}
+                    className="w-full h-full p-3 text-xs text-green-400 font-mono whitespace-pre-wrap bg-transparent border-0 focus:outline-none focus:ring-0 resize-none"
+                    placeholder="Código ZPL o DPL..."
+                    spellCheck={false}
+                  />
+                </ScrollArea>
+              </div>
+
+              {/* Vista previa */}
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  Vista Previa (con datos de prueba)
+                </Label>
+                <ScrollArea className="h-[150px] border rounded-md bg-stone-800">
+                  <pre className="p-3 text-xs text-green-300 font-mono whitespace-pre-wrap">
+                    {previewEdicion}
+                  </pre>
+                </ScrollArea>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setModalEditar(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleGuardarEdicion}
+              disabled={guardando}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              {guardando ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Guardar Cambios
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
