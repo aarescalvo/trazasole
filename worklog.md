@@ -990,6 +990,49 @@ Stage Summary:
 - **Lint sin errores** ✅
 
 ---
+Task ID: 1561
+Agent: main
+Task: Crear sistema para sincronizar ambos repositorios de GitHub
+
+Work Log:
+
+#### 1. Repositorios Identificados
+| Repositorio | Uso | Base de Datos |
+|-------------|-----|---------------|
+| `1532` | Desarrollo | SQLite |
+| `trazasole` | Producción | PostgreSQL |
+
+#### 2. Problema Detectado
+- Se subían cambios solo a un repositorio
+- El usuario de producción no recibía las actualizaciones
+- No había sistema para recordar sincronizar ambos
+
+#### 3. Solución Implementada
+**Archivo creado:** `REGLAS.md`
+- Documentación clara de ambos repositorios
+- Checklist obligatorio al finalizar cada sesión
+- Comandos exactos para push a ambos
+- Sistema de versionado sincronizado
+
+#### 4. Comandos Obligatorios para Push
+```bash
+# SIEMPRE ejecutar AMBOS comandos:
+git push origin master          # 1532 (desarrollo)
+git push trazasole master       # trazasole (producción)
+```
+
+#### 5. Remotos Configurados
+```bash
+git remote add origin https://github.com/aarescalvo/1532.git
+git remote add trazasole https://github.com/aarescalvo/trazasole.git
+```
+
+Stage Summary:
+- **Archivo REGLAS.md creado** ✅
+- **Checklist de sincronización** ✅
+- **Push a ambos repositorios** ✅
+
+---
 ## 📋 CHECKLIST DE FINALIZACIÓN (OBLIGATORIO)
 
 Al terminar CADA sesión de trabajo, verificar:
@@ -1000,9 +1043,10 @@ Al terminar CADA sesión de trabajo, verificar:
 | 2. Versión | Editar package.json | [ ] Incrementada |
 | 3. Worklog | Editar worklog.md | [ ] Actualizado |
 | 4. Git Add | `git add -A` | [ ] Hecho |
-| 5. Git Commit | `git commit -m "mensaje"` | [ ] Hecho |
-| 6. Git Push | `git push origin master` | [ ] Hecho |
-| 7. Dev Log | `tail -30 dev.log` | [ ] Verificado |
+| 5. Git Commit | `git commit -m "vX.Y.Z - mensaje"` | [ ] Hecho |
+| 6. Push 1532 | `git push origin master` | [ ] Hecho |
+| 7. Push trazasole | `git push trazasole master` | [ ] Hecho |
+| 8. Verificar GitHub | Ambos repos actualizados | [ ] Hecho |
 
 ### Formato de versión:
 - **Major (X.0.0)**: Cambios grandes/nuevos módulos
