@@ -1464,3 +1464,65 @@ Stage Summary:
 ### Versión actual: **3.1.6**
 ### Próxima versión sugerida: **3.1.7**
 
+
+---
+Task ID: 1569
+Agent: main
+Task: Actualizar ticket de pesaje con logo real y dirección correcta
+
+Work Log:
+
+#### 1. Cambios Realizados
+**Archivo:** `src/components/pesaje-camiones/ticketPrint.ts`
+
+**Logo actualizado:**
+- Ahora usa el mismo logo SVG que la pantalla de login
+- Logo "Z" de Solemar Alimentaria
+
+**Dirección actualizada:**
+- Ruta Nacional N° 22, Km 1043
+- Chimpay, Río Negro, Argentina
+
+**Firmas:**
+- Firma Portero
+- Firma Conforme Chofer
+
+#### 2. Estructura del Ticket
+```
+┌────────────────────────────────┐
+│        [LOGO SOLEMAR]          │
+│   SOLEMAR ALIMENTARIA S.A.     │
+│  Ruta Nacional N° 22, Km 1043  │
+│  Chimpay, Río Negro, Argentina │
+│     TICKET DE PESAJE           │
+│        Nº 000123               │
+├────────────────────────────────┤
+│ Tipo: INGRESO HACIENDA         │
+│ Fecha: 21/03/2026              │
+│ Hora: 10:30:00                 │
+│ Operador: Juan Pérez           │
+├────────────────────────────────┤
+│ DATOS DE HACIENDA              │
+│ Tropa: B 2026 0012             │
+│ Productor: ...                 │
+├────────────────────────────────┤
+│ PESOS                          │
+│ Bruto: 15,000 kg               │
+│ Tara: 5,000 kg                 │
+│ NETO: 10,000 kg                │
+├────────────────────────────────┤
+│ Firma Portero │ Firma Chofer   │
+└────────────────────────────────┘
+```
+
+Stage Summary:
+- **Logo real de Solemar agregado** ✅
+- **Dirección de Chimpay actualizada** ✅
+- **Firmas portero y chofer** ✅
+- **Versión actualizada a 3.1.7** ✅
+- **Pendiente: Push a ambos repositorios**
+
+---
+### Versión actual: **3.1.7**
+### Próxima versión sugerida: **3.1.8**
+

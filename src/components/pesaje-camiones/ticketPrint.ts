@@ -1,12 +1,23 @@
 import { TIPOS_PESAJE } from './constants'
 import type { Pesaje } from './types'
 
-// Logo en base64 (puedes reemplazarlo con el logo real)
-const LOGO_BASE64 = `
-<svg width="120" height="50" viewBox="0 0 120 50" xmlns="http://www.w3.org/2000/svg">
-  <rect width="120" height="50" fill="#1e3a5f"/>
-  <text x="60" y="28" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">SOLEMAR</text>
-  <text x="60" y="42" text-anchor="middle" fill="#90cdf4" font-family="Arial" font-size="9">ALIMENTARIA</text>
+// Logo Solemar Alimentaria (mismo que pantalla de login)
+const LOGO_SOLEMAR = `
+<svg width="100" height="40" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .st194{fill:#2D2D2D;stroke:#FFFFFF;stroke-width:0.3;stroke-miterlimit:10;}
+      .st23{fill:#FFFFFF;}
+    </style>
+  </defs>
+  <g>
+    <path class="st194" d="M24.51,28.51H5.49c-2.21,0-4-1.79-4-4V5.49c0-2.21,1.79-4,4-4h19.03c2.21,0,4,1.79,4,4v19.03C28.51,26.72,26.72,28.51,24.51,28.51z"/>
+    <g>
+      <path class="st23" d="M15.47,7.1l-1.3,1.85c-0.2,0.29-0.54,0.47-0.9,0.47h-7.1V7.09C6.16,7.1,15.47,7.1,15.47,7.1z"/>
+      <polygon class="st23" points="24.3,7.1 13.14,22.91 5.7,22.91 16.86,7.1"/>
+      <path class="st23" d="M14.53,22.91l1.31-1.86c0.2-0.29,0.54-0.47,0.9-0.47h7.09v2.33H14.53z"/>
+    </g>
+  </g>
 </svg>
 `
 
@@ -44,11 +55,11 @@ export function imprimirTicket(pesaje: Pesaje, duplicado: boolean = false) {
     </head>
     <body>
       <div class="header">
-        <div class="logo">${LOGO_BASE64}</div>
+        <div class="logo">${LOGO_SOLEMAR}</div>
         <div class="empresa">SOLEMAR ALIMENTARIA S.A.</div>
         <div class="direccion">
-          Ruta Nacional 12 Km 1234 - Corrientes, Argentina<br>
-          Tel: (03783) 42-XXXX - CUIT: 30-XXXXXXXX-X
+          Ruta Nacional N° 22, Km 1043<br>
+          Chimpay, Río Negro, Argentina
         </div>
         <div style="margin-top: 5px;">TICKET DE PESAJE${copia}</div>
         <div class="ticket">Nº ${String(pesaje.numeroTicket).padStart(6, '0')}</div>
@@ -146,9 +157,12 @@ export function imprimirReporte(pesajes: Pesaje[], fechaDesde: string, fechaHast
       </style>
     </head>
     <body>
-      <h1>SOLEMAR ALIMENTARIA S.A. - Reporte de Pesajes</h1>
+      <div style="text-align: center; margin-bottom: 10px;">
+        ${LOGO_SOLEMAR}
+      </div>
+      <h1>SOLEMAR ALIMENTARIA S.A.</h1>
       <p style="text-align: center; font-size: 12px; color: #666;">
-        Ruta Nacional 12 Km 1234 - Corrientes, Argentina
+        Ruta Nacional N° 22, Km 1043 - Chimpay, Río Negro, Argentina
       </p>
       <p><strong>Período:</strong> ${fechaDesde ? new Date(fechaDesde).toLocaleDateString('es-AR') : 'Inicio'} - ${fechaHasta ? new Date(fechaHasta).toLocaleDateString('es-AR') : 'Hoy'}</p>
       <p><strong>Generado:</strong> ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}</p>
