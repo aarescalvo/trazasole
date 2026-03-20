@@ -1112,8 +1112,44 @@ Al terminar CADA sesión de trabajo, verificar:
 - **Minor (0.X.0)**: Nuevas funcionalidades
 - **Patch (0.0.X)**: Bug fixes, mejoras menores
 
-### Versión actual: **3.1.0**
-### Próxima versión sugerida: **3.1.1**
+### Versión actual: **3.1.1**
+### Próxima versión sugerida: **3.1.2**
+
+---
+Task ID: 1563
+Agent: main
+Task: Fix script actualización Windows para manejar cambios locales
+
+Work Log:
+
+#### 1. Problema Identificado
+El script `reiniciar-actualizado.bat` fallaba porque:
+- En producción, `prisma/schema.prisma` tiene `provider = "postgresql"`
+- Este cambio local no está committeado (es configuración de producción)
+- Al hacer `git pull`, Git rechaza sobrescribir el archivo
+
+#### 2. Solución Implementada
+**Archivo:** `reiniciar-actualizado.bat`
+- Agregado `git stash` antes del pull para guardar cambios locales
+- Después del pull, restaurar configuración PostgreSQL con PowerShell
+- Flujo: stash → pull → configurar postgres → db:push → iniciar
+
+#### 3. Nuevo Flujo del Script
+```
+[1/6] Detener servidor
+[2/6] Guardar cambios locales (stash)
+[3/6] Descargar actualizaciones (pull)
+[4/6] Restaurar configuración PostgreSQL
+[5/6] Instalar dependencias y sincronizar BD
+[6/6] Iniciar servidor
+```
+
+Stage Summary:
+- **Script corregido para producción** ✅
+- **Maneja cambios locales del schema** ✅
+- **Siempre configura PostgreSQL** ✅
+- **Versión actualizada a 3.1.1** ✅
+- **Push a ambos repositorios** ✅
 
 ---
 ## 🚨 REGLAS DE ORO (OBLIGATORIO)
