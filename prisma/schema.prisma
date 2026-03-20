@@ -1384,6 +1384,7 @@ model Rotulo {
   
   // Tipo de impresora: ZEBRA (ZPL) o DATAMAX (DPL)
   tipoImpresora     String        @default("ZEBRA")  // ZEBRA | DATAMAX
+  modeloImpresora   String?       @default("ZT410")  // ZT410, ZT230, MARK_II, etc.
   
   // Dimensiones en mm
   ancho             Int           @default(80)

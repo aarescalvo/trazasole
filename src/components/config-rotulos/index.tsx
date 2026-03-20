@@ -37,6 +37,22 @@ const TIPOS_IMPRESORA = [
   { value: 'DATAMAX', label: 'Datamax (DPL)', extensiones: ['.dpl'] },
 ]
 
+const MODELOS_IMPRESORA = {
+  ZEBRA: [
+    { value: 'ZT410', label: 'Zebra ZT410 (300 DPI)', dpi: 300, descripcion: 'Industrial, alta resolución' },
+    { value: 'ZT230', label: 'Zebra ZT230 (203 DPI)', dpi: 203, descripcion: 'Industrial, estándar' },
+    { value: 'ZT411', label: 'Zebra ZT411 (300 DPI)', dpi: 300, descripcion: 'Industrial, conectividad avanzada' },
+    { value: 'ZD420', label: 'Zebra ZD420 (203 DPI)', dpi: 203, descripcion: 'Desktop' },
+    { value: 'OTRO_ZEBRA', label: 'Otra Zebra', dpi: 203, descripcion: 'Otro modelo Zebra' },
+  ],
+  DATAMAX: [
+    { value: 'MARK_II', label: 'Datamax Mark II (203 DPI)', dpi: 203, descripcion: 'Industrial, robusta' },
+    { value: 'I-4208', label: 'Datamax I-4208 (203 DPI)', dpi: 203, descripcion: 'Industrial' },
+    { value: 'I-4210', label: 'Datamax I-4210 (203 DPI)', dpi: 203, descripcion: 'Industrial, alta velocidad' },
+    { value: 'OTRO_DATAMAX', label: 'Otra Datamax', dpi: 203, descripcion: 'Otro modelo Datamax' },
+  ]
+}
+
 interface VariableDetectada {
   variable: string
   campo: string
@@ -81,6 +97,7 @@ export function ConfigRotulosModule({ operador }: Props) {
   const [codigo, setCodigo] = useState('')
   const [categoriaUso, setCategoriaUso] = useState('MEDIA_RES')
   const [tipoImpresora, setTipoImpresora] = useState('ZEBRA')
+  const [modeloImpresora, setModeloImpresora] = useState('ZT410')
   const [ancho, setAncho] = useState(80)
   const [alto, setAlto] = useState(50)
   const [dpi, setDpi] = useState(203)
@@ -199,8 +216,12 @@ export function ConfigRotulosModule({ operador }: Props) {
     // Detectar tipo de impresora por extensión
     if (extension === 'dpl') {
       setTipoImpresora('DATAMAX')
+      setModeloImpresora('MARK_II')
+      setDpi(203)
     } else {
       setTipoImpresora('ZEBRA')
+      setModeloImpresora('ZT410')
+      setDpi(300)
     }
 
     setArchivo(file)
@@ -668,6 +689,65 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
                 <Label>Código</Label>
                 <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} />
               </div>
+            </div>
+
+            {/* Tipo y Modelo de Impresora */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Tipo de Impresora</Label>
+                <Select value={tipoImpresora} onValueChange={(v) => {
+                  setTipoImpresora(v)
+                  // Cambiar al modelo default según tipo
+                  if (v === 'DATAMAX') {
+                    setModeloImpresora('MARK_II')
+                    setDpi(203)
+                  } else {
+                    setModeloImpresora('ZT410')
+                    setDpi(300)
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_IMPRESORA.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Modelo</Label>
+                <Select value={modeloImpresora} onValueChange={(v) => {
+                  setModeloImpresora(v)
+                  const modelo = MODELOS_IMPRESORA[tipoImpresora as keyof typeof MODELOS_IMPRESORA]?.find(m => m.value === v)
+                  if (modelo) setDpi(modelo.dpi)
+                }}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MODELOS_IMPRESORA[tipoImpresora as keyof typeof MODELOS_IMPRESORA]?.map(m => (
+                      <SelectItem key={m.value} value={m.value}>
+                        <div className="flex flex-col">
+                          <span>{m.label}</span>
+                          <span className="text-xs text-stone-400">{m.descripcion}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Info del modelo seleccionado */}
+            <div className="p-2 bg-stone-50 rounded-lg flex items-center gap-2">
+              <Info className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-stone-600">
+                {MODELOS_IMPRESORA[tipoImpresora as keyof typeof MODELOS_IMPRESORA]?.find(m => m.value === modeloImpresora)?.label || 'Seleccionar modelo'}
+                {' - '}
+                DPI detectado: {dpi}
+              </span>
             </div>
 
             {/* Categoría de uso */}

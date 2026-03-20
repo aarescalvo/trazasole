@@ -1035,64 +1035,59 @@ Stage Summary:
 ---
 Task ID: 1562
 Agent: main
-Task: Optimizar pesaje individual y crear sistema de rótulos ZPL
+Task: Sistema de rótulos ZPL/DPL para Zebra ZT410/ZT230 y Datamax Mark II
 
 Work Log:
 
-#### 1. Pantalla de Pesaje Individual Optimizada
+#### 1. Plantillas ZPL para Zebra
+**Modelos soportados:**
+- **Zebra ZT410** (300 DPI) - Industrial, alta resolución
+- **Zebra ZT230** (203 DPI) - Industrial, estándar
+
+**Rótulos creados:**
+- Pesaje Individual - 10x5 cm con número grande, tropa, tipo, peso y código de barras
+- Media Res - 8x12 cm completo con todos los datos requeridos
+- Menudencia - 6x8 cm compacto
+
+#### 2. Plantillas DPL para Datamax
+**Modelos soportados:**
+- **Datamax Mark II** (203 DPI) - Industrial, robusta
+
+**Rótulos creados:**
+- Pesaje Individual, Media Res y Menudencia en formato DPL
+
+#### 3. Schema Prisma Actualizado
+**Modelo Rotulo:**
+- Agregado campo `modeloImpresora` (ZT410, ZT230, MARK_II, etc.)
+- Seleccionable desde la UI de configuración
+
+#### 4. UI de Configuración de Rótulos Mejorada
+**Archivo:** `src/components/config-rotulos/index.tsx`
+- Selector de tipo de impresora (ZEBRA/DATAMAX)
+- Selector de modelo específico (ZT410, ZT230, Mark II, etc.)
+- DPI automático según modelo seleccionado
+- Info del modelo en tiempo real
+
+#### 5. Pantalla Pesaje Individual Optimizada
 **Archivo:** `src/components/pesaje-individual-module.tsx`
+- Layout compacto sin scroll
+- Número de animal: text-8xl → text-5xl
+- Grid 4 columnas (panel 3/4, lista 1/4)
+- Labels compactos (text-xs → text-[10px])
+- Botones de tipo y raza más pequeños pero legibles
+- Botón Registrar siempre visible
 
-**Cambios realizados:**
-- Eliminado scroll de la pantalla de pesaje (overflow-auto → overflow-hidden)
-- Layout optimizado de 3 columnas a 4 columnas (panel principal 3/4, lista 1/4)
-- Número de animal reducido: text-8xl → text-5xl
-- Header compacto: py-2 → py-1.5, padding reducido
-- Labels compactos: text-xs → text-[10px]
-- Grid de controles en 2 columnas con gap reducido
-- Botones de tipo y raza más compactos (px-2 py-1)
-- Input de peso más pequeño: h-14 → h-10
-- Botón registrar optimizado: h-14 → h-12
-- Lista de animales en grid 2 columnas compacto
-
-**Resultado:** Todo visible sin scroll en pantalla estándar
-
-#### 2. Sistema de Rótulos ZPL
-**Archivos:**
-- `prisma/schema.prisma` - Agregado PESAJE_INDIVIDUAL a TipoRotulo enum
-- `src/app/api/rotulos/init-zpl/route.ts` - Nueva API para inicializar rótulos ZPL
-- `src/app/api/rotulos/route.ts` - Agregado filtro esDefault y categoria
-- `src/components/pesaje-individual-module.tsx` - Integrada impresión de rótulos
-
-**Rótulos ZPL por defecto creados:**
-1. **PESAJE_INDIVIDUAL** - Rótulo 10x5cm con número, tropa, tipo, peso y código de barras
-2. **MEDIA_RES** - Rótulo 8x12cm completo para medias reses
-3. **MENUDENCIA** - Rótulo 6x8cm para menudencias
-
-**Variables soportadas:**
-- `{{NUMERO}}` - Número de animal
-- `{{TROPA}}` - Código de tropa
-- `{{TIPO}}` - Tipo de animal
-- `{{PESO}}` - Peso vivo
-- `{{CODIGO}}` - Código del animal
-- `{{RAZA}}` - Raza
-- `{{CARAVANA}}` - Caravana
-
-#### 3. Integración de Impresión
-- Función `imprimirRotulo` ahora usa API de rótulos ZPL
-- Si no hay rótulo configurado, fallback a HTML básico
-- Busca rótulo default por tipo y esDefault
-
-#### 4. Comandos para Inicializar Rótulos
-```bash
-# Inicializar rótulos ZPL por defecto (ejecutar una vez)
-curl -X POST http://localhost:3000/api/rotulos/init-zpl
-```
+#### 6. Impresión Automática Integrada
+- Al registrar peso, busca rótulo default de PESAJE_INDIVIDUAL
+- Si no hay configurado, usa fallback HTML
+- Envía a impresora via TCP/IP (puerto 9100)
 
 Stage Summary:
-- **Pantalla pesaje optimizada SIN scroll** ✅
-- **Sistema de rótulos ZPL creado** ✅
-- **3 rótulos default disponibles** ✅
-- **API de impresión integrada** ✅
+- **Plantillas ZPL para Zebra ZT410/ZT230 creadas** ✅
+- **Plantillas DPL para Datamax Mark II creadas** ✅
+- **Campo modeloImpresora agregado a Prisma** ✅
+- **UI de configuración con selectores de modelo** ✅
+- **Pantalla pesaje individual optimizada SIN scroll** ✅
 - **Versión actualizada a 3.1.0** ✅
 - **Pendiente: Push a ambos repositorios**
 
@@ -1117,8 +1112,8 @@ Al terminar CADA sesión de trabajo, verificar:
 - **Minor (0.X.0)**: Nuevas funcionalidades
 - **Patch (0.0.X)**: Bug fixes, mejoras menores
 
-### Versión actual: **3.0.0**
-### Próxima versión sugerida: **3.0.1**
+### Versión actual: **3.1.0**
+### Próxima versión sugerida: **3.1.1**
 
 ---
 ## 🚨 REGLAS DE ORO (OBLIGATORIO)
@@ -1149,7 +1144,7 @@ git push origin master
 git commit -m "fix"
 
 # ✅ Bueno
-git commit -m "v3.0.0 - Corregir permisos ADMINISTRADOR para ingreso-cajon"
+git commit -m "v3.1.0 - Soporte impresoras Zebra ZT410/ZT230 y Datamax Mark II"
 ```
 
 ### 4. Proteger datos y código existente
