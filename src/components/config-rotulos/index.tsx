@@ -134,7 +134,8 @@ export function ConfigRotulosModule({ operador }: Props) {
       const response = await fetch('/api/rotulos')
       if (response.ok) {
         const data = await response.json()
-        setRotulos(data)
+        // La API puede devolver {success, data} o directamente el array
+        setRotulos(Array.isArray(data) ? data : (data.data || []))
       }
     } catch (error) {
       console.error('Error al cargar rótulos:', error)
