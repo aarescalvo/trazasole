@@ -15,10 +15,11 @@ import { toast } from 'sonner'
 import { 
   Tag, Loader2, Power, Trash2, Upload, Eye, FileText, Printer, 
   Download, Copy, Info, Variable, FileCode, Check, ChevronDown, ChevronRight,
-  Settings, Star, Play, X, Edit
+  Settings, Star, Play, X, Edit, Palette
 } from 'lucide-react'
 import { TipoRotulo } from '@prisma/client'
 import { Textarea } from '@/components/ui/textarea'
+import { LabelDesigner } from './LabelDesigner'
 
 interface Operador { id: string; nombre: string; rol: string }
 interface Props { operador: Operador }
@@ -87,6 +88,7 @@ export function ConfigRotulosModule({ operador }: Props) {
   const [modalAsignar, setModalAsignar] = useState(false)
   const [modalPreview, setModalPreview] = useState(false)
   const [modalEditar, setModalEditar] = useState(false)
+  const [modalEditor, setModalEditor] = useState(false)
   const [rotuloSeleccionado, setRotuloSeleccionado] = useState<Rotulo | null>(null)
   const [previewProcesado, setPreviewProcesado] = useState('')
   const [imprimiendo, setImprimiendo] = useState(false)
@@ -537,6 +539,13 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
           <p className="text-sm text-stone-500">Plantillas para impresoras Zebra y Datamax</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setModalEditor(true)}
+          >
+            <Palette className="w-4 h-4 mr-2" />
+            Editor Visual
+          </Button>
           <Button 
             variant="outline"
             onClick={() => window.open('/VARIABLES_SOPORTADAS.txt', '_blank')}
@@ -1160,6 +1169,60 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Editor Visual */}
+      <Dialog open={modalEditor} onOpenChange={setModalEditor}>
+        <DialogContent className="max-w-5xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-amber-500" />
+              Editor Visual de Rótulos
+            </DialogTitle>
+            <p className="text-sm text-stone-500">
+              Diseña rótulos con drag & drop y genera código ZPL/DPL automáticamente
+            </p>
+          </DialogHeader>
+          
+          <div className="py-4 overflow-auto" style={{ maxHeight: '70vh' }}>
+            <LabelDesigner
+              ancho={80}
+              alto={50}
+              dpi={203}
+              tipoImpresora="ZEBRA"
+              onGenerate={(zpl) => {
+                // Crear nuevo rótulo con el código generado
+                const nuevoRotulo = {
+                  nombre: 'Rótulo Diseñado',
+                  codigo: 'DISENO_' + Date.now(),
+                  tipo: 'PESAJE_INDIVIDUAL',
+                  tipoImpresora: 'ZEBRA',
+                  ancho: 80,
+                  alto: 50,
+                  dpi: 203,
+                  contenido: zpl,
+                  activo: true,
+                  esDefault: false
+                }
+                
+                fetch('/api/rotulos', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(nuevoRotulo)
+                }).then(res => res.json())
+                .then(data => {
+                  if (data.success || data.id) {
+                    toast.success('Rótulo creado desde editor visual')
+                    setModalEditor(false)
+                    cargarRotulos()
+                  } else {
+                    toast.error('Error al crear rótulo')
+                  }
+                })
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
