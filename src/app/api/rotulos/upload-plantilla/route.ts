@@ -3,7 +3,7 @@ import { PrismaClient, TipoRotulo } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// POST - Subir plantilla (ZPL o DPL)
+// POST - Subir plantilla (ZPL, DPL o archivo binario .lbl/.nlbl)
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -20,12 +20,20 @@ export async function POST(request: NextRequest) {
     const categoria = formData.get('categoria') as string || null
     const diasConsumo = parseInt(formData.get('diasConsumo') as string) || 30
     const temperaturaMax = parseFloat(formData.get('temperaturaMax') as string) || 5.0
+    const esBinario = formData.get('esBinario') === 'true'
 
     if (!contenido || !nombre || !codigo || !tipo) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
       )
+    }
+
+    // Si es archivo binario, obtener el contenido como base64
+    let contenidoFinal = contenido
+    if (esBinario && file) {
+      const buffer = await file.arrayBuffer()
+      contenidoFinal = Buffer.from(buffer).toString('base64')
     }
 
     // Verificar si ya existe
@@ -61,9 +69,10 @@ export async function POST(request: NextRequest) {
         ancho,
         alto,
         dpi,
-        contenido,
+        contenido: contenidoFinal,
         variables,
         nombreArchivo: file?.name || null,
+        esBinario,
         diasConsumo,
         temperaturaMax,
         activo: true,

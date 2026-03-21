@@ -1395,6 +1395,7 @@ model Rotulo {
   contenido         String        // Contenido del archivo ZPL o DPL
   variables         String?       // JSON con variables detectadas
   nombreArchivo     String?       // Nombre del archivo original
+  esBinario         Boolean       @default(false)  // Archivo .lbl/.nlbl (Zebra Designer)
   
   // Configuración de consumo
   diasConsumo       Int?          @default(30)  // Días para consumir

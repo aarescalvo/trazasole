@@ -4,7 +4,7 @@ import net from 'net'
 
 const prisma = new PrismaClient()
 
-// POST - Imprimir rótulo
+// POST - Imprimir rótulo (ZPL, DPL o binario)
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
@@ -36,7 +36,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Procesar el contenido según tipo de impresora
+    // Si es archivo binario, enviar directo sin procesar
+    if (rotulo.esBinario) {
+      if (!impresoraIp) {
+        return NextResponse.json({
+          success: false,
+          error: 'Se requiere IP de impresora para archivos binarios'
+        }, { status: 400 })
+      }
+
+      try {
+        // Decodificar de base64
+        const buffer = Buffer.from(rotulo.contenido, 'base64')
+        await enviarBufferAImpresora(buffer, impresoraIp, impresoraPuerto)
+        return NextResponse.json({
+          success: true,
+          message: `Archivo binario enviado a ${impresoraIp}:${impresoraPuerto}`,
+          esBinario: true
+        })
+      } catch (printError) {
+        console.error('Error al imprimir archivo binario:', printError)
+        return NextResponse.json({
+          success: false,
+          error: 'Error al enviar archivo binario a la impresora',
+          details: String(printError)
+        }, { status: 500 })
+      }
+    }
+
+    // Procesar el contenido según tipo de impresora (para archivos de texto)
     let contenidoProcesado = rotulo.contenido
     
     // Reemplazar variables con datos
@@ -202,6 +230,31 @@ async function enviarAImpresora(contenido: string, ip: string, puerto: number): 
     
     client.connect(puerto, ip, () => {
       client.write(contenido, 'utf8', () => {
+        client.end()
+        resolve()
+      })
+    })
+    
+    client.on('error', (err: Error) => {
+      reject(err)
+    })
+    
+    client.on('timeout', () => {
+      client.destroy()
+      reject(new Error('Timeout conectando a impresora'))
+    })
+    
+    client.setTimeout(10000) // 10 segundos de timeout
+  })
+}
+
+// Enviar buffer binario a impresora via socket TCP
+async function enviarBufferAImpresora(buffer: Buffer, ip: string, puerto: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const client = new net.Socket()
+    
+    client.connect(puerto, ip, () => {
+      client.write(buffer, () => {
         client.end()
         resolve()
       })

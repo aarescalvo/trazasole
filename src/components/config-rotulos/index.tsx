@@ -78,6 +78,7 @@ interface Rotulo {
   temperaturaMax?: number | null
   activo: boolean
   esDefault: boolean
+  esBinario?: boolean  // Para archivos .lbl/.nlbl
 }
 
 export function ConfigRotulosModule({ operador }: Props) {
@@ -105,6 +106,8 @@ export function ConfigRotulosModule({ operador }: Props) {
   // Formulario de importación
   const [archivo, setArchivo] = useState<File | null>(null)
   const [contenidoArchivo, setContenidoArchivo] = useState('')
+  const [archivoBinario, setArchivoBinario] = useState<ArrayBuffer | null>(null)  // Para .lbl/.nlbl
+  const [esBinario, setEsBinario] = useState(false)
   const [variablesDetectadas, setVariablesDetectadas] = useState<VariableDetectada[]>([])
   const [nombre, setNombre] = useState('')
   const [codigo, setCodigo] = useState('')
@@ -178,8 +181,43 @@ export function ConfigRotulosModule({ operador }: Props) {
   // Ver preview del rótulo
   const handlePreview = (rotulo: Rotulo) => {
     setRotuloSeleccionado(rotulo)
-    const procesado = procesarZplConDatos(rotulo.contenido, datosPrueba)
-    setPreviewProcesado(procesado)
+    
+    if (rotulo.esBinario) {
+      // Para archivos .lbl/.nlbl, mostrar información del archivo
+      setPreviewProcesado(`╔══════════════════════════════════════════════════════════════╗
+║     ARCHIVO ZEBRA DESIGNER - BINARIO                         ║
+╚══════════════════════════════════════════════════════════════╝
+
+📁 Archivo: ${rotulo.nombreArchivo || 'N/A'}
+📐 Tamaño: ${rotulo.ancho}x${rotulo.alto}mm
+🖨️ DPI: ${rotulo.dpi}
+📦 Tipo: ${rotulo.tipoImpresora} - ${rotulo.modeloImpresora || 'N/A'}
+
+⚠️ FORMATO PROPIETARIO (BINARIO/ENCRIPTADO)
+Este archivo se enviará DIRECTAMENTE a la impresora Zebra.
+
+═══════════════════════════════════════════════════════════════
+📋 PARA VER EL CÓDIGO ZPL:
+
+OPCIÓN 1 - Print to File:
+   1. Abra el diseño en Zebra Designer
+   2. File → Print (o Ctrl+P)
+   3. Marque "Print to file"
+   4. Guarde como .prn
+
+OPCIÓN 2 - Exportar ZPL:
+   1. Tools → Export
+   2. Seleccione formato ZPL
+
+═══════════════════════════════════════════════════════════════
+✅ Configure la IP de la impresora y use "Imprimir Prueba"
+   para enviar el archivo directamente.`)
+    } else {
+      // Para archivos ZPL/DPL, procesar con datos de prueba
+      const procesado = procesarZplConDatos(rotulo.contenido, datosPrueba)
+      setPreviewProcesado(procesado)
+    }
+    
     setModalPreview(true)
   }
 
@@ -223,17 +261,42 @@ export function ConfigRotulosModule({ operador }: Props) {
 
   // Exportar a archivo (para ver lo que imprime)
   const handleExportarArchivo = () => {
-    if (!rotuloSeleccionado || !previewProcesado) return
+    if (!rotuloSeleccionado) return
     
-    const ext = rotuloSeleccionado.tipoImpresora === 'DATAMAX' ? 'dpl' : 'zpl'
-    const blob = new Blob([previewProcesado], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `prueba_${rotuloSeleccionado.nombre.replace(/\s+/g, '_')}.${ext}`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(`Archivo .${ext} descargado`)
+    if (rotuloSeleccionado.esBinario) {
+      // Para archivos .lbl/.nlbl, decodificar base64 y exportar original
+      try {
+        const binaryString = atob(rotuloSeleccionado.contenido)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'application/octet-stream' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        // Usar el nombre original o generar uno
+        const nombreOriginal = rotuloSeleccionado.nombreArchivo || `${rotuloSeleccionado.nombre}.nlbl`
+        a.download = nombreOriginal
+        a.click()
+        URL.revokeObjectURL(url)
+        toast.success(`Archivo ${nombreOriginal} descargado`)
+      } catch (error) {
+        console.error('Error al exportar archivo binario:', error)
+        toast.error('Error al exportar archivo')
+      }
+    } else {
+      // Para archivos ZPL/DPL, exportar el contenido procesado
+      const ext = rotuloSeleccionado.tipoImpresora === 'DATAMAX' ? 'dpl' : 'zpl'
+      const blob = new Blob([previewProcesado], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `prueba_${rotuloSeleccionado.nombre.replace(/\s+/g, '_')}.${ext}`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(`Archivo .${ext} descargado`)
+    }
   }
 
   // Seleccionar archivo
@@ -264,37 +327,73 @@ export function ConfigRotulosModule({ operador }: Props) {
     
     // Para archivos .nlbl y .lbl, son binarios propietarios de Zebra Designer
     if (extension === 'nlbl' || extension === 'lbl') {
-      // Los archivos nativos de Zebra Designer están encriptados
-      // No se pueden procesar directamente, se guardan para impresión
-      setContenidoArchivo(`[Archivo Zebra Designer - ${extension.toUpperCase()}]
+      // Leer como buffer binario para enviar directo a impresora
+      const buffer = await file.arrayBuffer()
+      setArchivoBinario(buffer)
+      setEsBinario(true)
+      
+      // Intentar extraer algo de información del archivo
+      const bytes = new Uint8Array(buffer)
+      const sizeKB = (bytes.length / 1024).toFixed(2)
+      
+      // Buscar strings legibles en el binario (headers, etc.)
+      let infoExtra = ''
+      try {
+        const decoder = new TextDecoder('utf-8', { fatal: false })
+        const text = decoder.decode(bytes)
+        
+        // Buscar posibles campos de información
+        const labelMatch = text.match(/LabelName[^\x00]+/g)
+        const sizeMatch = text.match(/LabelSize[^\x00]+/g)
+        const dpiMatch = text.match(/DPI[^\x00]+/g)
+        
+        if (labelMatch) infoExtra += `\n📝 Nombre: ${labelMatch[0].replace('LabelName', '').replace(/\x00/g, '').trim()}`
+        if (sizeMatch) infoExtra += `\n📐 Tamaño: ${sizeMatch[0].replace('LabelSize', '').replace(/\x00/g, '').trim()}`
+        if (dpiMatch) infoExtra += `\n🖨️ DPI: ${dpiMatch[0].replace('DPI', '').replace(/\x00/g, '').trim()}`
+      } catch (e) {
+        // Ignorar errores de decode
+      }
+      
+      setContenidoArchivo(`╔══════════════════════════════════════════════════════════════╗
+║     ARCHIVO ZEBRA DESIGNER - ${extension.toUpperCase().padEnd(12)}          ║
+╚══════════════════════════════════════════════════════════════╝
 
-⚠️ Este es un archivo de diseño nativo de Zebra Designer (encriptado).
-No es posible extraer el código ZPL directamente.
+📁 Archivo: ${file.name}
+📦 Tamaño: ${sizeKB} KB${infoExtra}
 
-📋 PARA OBTENER EL CÓDIGO ZPL:
+⚠️ FORMATO PROPIETARIO (BINARIO/ENCRIPTADO)
+Este archivo no se puede previsualizar como texto.
+Se enviará DIRECTAMENTE a la impresora Zebra.
+
+═══════════════════════════════════════════════════════════════
+📋 PARA OBTENER EL CÓDIGO ZPL LEGIBLE:
 
 OPCIÓN 1 - Print to File:
-1. Abra el diseño en Zebra Designer
-2. File → Print (o Ctrl+P)
-3. Marque "Print to file" 
-4. Guarde como .prn
+   1. Abra el diseño en Zebra Designer
+   2. File → Print (o Ctrl+P)
+   3. Marque "Print to file"
+   4. Guarde como .prn
 
 OPCIÓN 2 - Impresora Virtual:
-1. Instale "Zebra Printer Driver" 
-2. Agregue una impresora Zebra virtual
-3. Imprima a archivo desde Zebra Designer
+   1. Instale "Zebra Printer Driver"
+   2. Agregue una impresora Zebra virtual
+   3. Imprima a archivo desde Zebra Designer
 
 OPCIÓN 3 - Exportar desde Zebra Designer:
-1. Tools → Export
-2. Seleccione formato ZPL
+   1. Tools → Export
+   2. Seleccione formato ZPL
 
-✅ Este archivo se guardará para impresión directa a la impresora.`)
+═══════════════════════════════════════════════════════════════
+✅ IMPRESIÓN DIRECTA: Configure la IP de la impresora y 
+   use "Imprimir Prueba" para enviar el archivo directamente.`)
       setVariablesDetectadas([])
-      toast.info('Archivo Zebra Designer detectado. Se guardará para impresión directa.')
+      toast.info('Archivo Zebra Designer detectado. Se enviará directo a impresora.')
     } else {
       // Archivos de texto plano (zpl, prn, dpl, txt)
       const contenido = await file.text()
       setContenidoArchivo(contenido)
+      setEsBinario(false)
+      setArchivoBinario(null)
       
       const variables = detectarVariables(contenido, extension === 'dpl' ? 'DATAMAX' : 'ZEBRA')
       setVariablesDetectadas(variables)
@@ -374,6 +473,13 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
       formData.append('contenido', contenidoArchivo)
       formData.append('variables', JSON.stringify(variablesDetectadas))
       formData.append('categoria', categoriaUso)
+      formData.append('esBinario', String(esBinario))
+      
+      // Si es binario, enviar el archivo original
+      if (esBinario && archivoBinario) {
+        const blob = new Blob([archivoBinario], { type: 'application/octet-stream' })
+        formData.set('file', blob, archivo?.name || 'rotulo.lbl')
+      }
 
       const response = await fetch('/api/rotulos/upload-plantilla', {
         method: 'POST',
@@ -548,6 +654,8 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
   const resetForm = () => {
     setArchivo(null)
     setContenidoArchivo('')
+    setArchivoBinario(null)
+    setEsBinario(false)
     setVariablesDetectadas([])
     setNombre('')
     setCodigo('')
@@ -981,13 +1089,94 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
             <DialogTitle className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-blue-500" />
               Vista Previa: {rotuloSeleccionado?.nombre}
+              {rotuloSeleccionado?.esBinario && (
+                <Badge className="bg-purple-100 text-purple-700 ml-2">Binario Zebra</Badge>
+              )}
             </DialogTitle>
             <DialogDescription>
-              Previsualización con datos de prueba • {rotuloSeleccionado?.ancho}×{rotuloSeleccionado?.alto}mm
+              {rotuloSeleccionado?.esBinario 
+                ? `Archivo binario para impresión directa • ${rotuloSeleccionado?.ancho}×${rotuloSeleccionado?.alto}mm`
+                : `Previsualización con datos de prueba • ${rotuloSeleccionado?.ancho}×{rotuloSeleccionado?.alto}mm`
+              }
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4">
+          {rotuloSeleccionado?.esBinario ? (
+            /* Vista para archivo binario */
+            <div className="space-y-4">
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileCode className="w-5 h-5 text-purple-600" />
+                  <span className="font-medium text-purple-800">Archivo Zebra Designer (Binario)</span>
+                </div>
+                <div className="text-sm text-purple-700 space-y-1">
+                  <p>📁 <strong>Archivo:</strong> {rotuloSeleccionado.nombreArchivo || rotuloSeleccionado.nombre}</p>
+                  <p>📐 <strong>Tamaño:</strong> {rotuloSeleccionado.ancho}×{rotuloSeleccionado.alto}mm</p>
+                  <p>🖨️ <strong>DPI:</strong> {rotuloSeleccionado.dpi}</p>
+                </div>
+                <div className="mt-3 p-2 bg-amber-100 rounded text-xs text-amber-800">
+                  ⚠️ Este archivo está en formato propietario y no se puede previsualizar como texto.
+                  Se enviará directamente a la impresora Zebra.
+                </div>
+              </div>
+
+              {/* Configuración de impresora */}
+              <div className="p-4 bg-stone-50 rounded-lg border">
+                <p className="text-sm font-medium text-stone-600 mb-3">Configuración de Impresora Zebra</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">IP de Impresora</Label>
+                    <Input
+                      value={impresoraIp}
+                      onChange={(e) => setImpresoraIp(e.target.value)}
+                      placeholder="192.168.1.100"
+                      className="h-9"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Puerto</Label>
+                    <Input
+                      value={impresoraPuerto}
+                      onChange={(e) => setImpresoraPuerto(e.target.value)}
+                      placeholder="9100"
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleExportarArchivo}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar Archivo
+                </Button>
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={handleImprimirPrueba}
+                  disabled={imprimiendo || !impresoraIp}
+                >
+                  {imprimiendo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Imprimiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimir
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Vista normal para archivos de texto */
+            <div className="grid grid-cols-2 gap-4">
             {/* Panel izquierdo - Datos de prueba */}
             <div className="space-y-3">
               <Label className="flex items-center gap-2">
@@ -1098,6 +1287,7 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
               </div>
             </div>
           </div>
+          )}
 
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setModalPreview(false)}>

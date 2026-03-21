@@ -1748,3 +1748,40 @@ Stage Summary:
 - **Exportación a archivo implementada** ✅
 - **Versión actualizada a 3.2.0** ✅
 
+
+---
+Task ID: 1574
+Agent: main
+Task: Soporte completo para archivos .lbl/.nlbl de Zebra Designer
+
+Work Log:
+
+#### 1. Mejoras en Preview para Archivos Binarios
+- Identificación visual de archivos Zebra Designer (binarios)
+- Muestra información del archivo: nombre, tamaño, DPI
+- Instrucciones claras para obtener ZPL desde Zebra Designer
+- Botones específicos para archivos binarios
+
+#### 2. Funcionalidades para .lbl/.nlbl
+- **Importar:** Sube archivos .lbl/.nlbl y los guarda en base64
+- **Descargar:** Exporta el archivo original decodificando de base64
+- **Imprimir:** Envía el archivo binario directamente a la impresora Zebra
+
+#### 3. Cómo usar archivos Zebra Designer
+1. **Importar plantilla:** Click en "Importar Plantilla" → seleccionar archivo .lbl o .nlbl
+2. **El archivo se guarda** en formato binario (no se puede editar)
+3. **Para imprimir:**
+   - Click en "Preview" (ojo)
+   - Ingresar IP de la impresora Zebra
+   - Click en "Imprimir"
+
+#### 4. Para obtener ZPL legible (opcional)
+- **Print to File:** En Zebra Designer → File → Print → "Print to file" → guardar como .prn
+- **Exportar ZPL:** En Zebra Designer → Tools → Export → formato ZPL
+
+Stage Summary:
+- **Soporte completo para .lbl/.nlbl** ✅
+- **Descarga de archivo original** ✅
+- **Impresión directa de binarios** ✅
+- **Versión actualizada a 3.2.1** ✅
+
