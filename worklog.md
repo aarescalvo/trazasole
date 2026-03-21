@@ -1785,3 +1785,50 @@ Stage Summary:
 - **Impresión directa de binarios** ✅
 - **Versión actualizada a 3.2.1** ✅
 
+
+---
+## ✅ SINCRONIZACIÓN VERIFICADA - $(date '+%Y-%m-%d %H:%M')
+
+### Repositorios Sincronizados
+| Repositorio | URL | Último Commit | Estado |
+|-------------|-----|---------------|--------|
+| 1532 (desarrollo) | github.com/aarescalvo/1532 | v3.2.1 | ✅ OK |
+| trazasole (producción) | github.com/aarescalvo/trazasole | v3.2.1 | ✅ OK |
+
+### Commits Sincronizados
+```
+v3.2.1 - Soporte completo para archivos .lbl/.nlbl Zebra Designer
+v3.2.0 - Fix clipboard SSR, impresión prueba con IP, exportar archivo
+v3.1.9 - Editor visual de rótulos drag and drop con conversión ZPL/DPL
+v3.1.8 - Documentacion completa: INSTRUCCIONES.md
+v3.1.7 - Ticket pesaje: logo real Solemar y direccion Chimpay
+```
+
+### Versión Actual
+**v3.2.1** - Ambos repositorios sincronizados
+
+---
+
+## 📋 RESUMEN DE FUNCIONALIDADES v3.2.1
+
+### Configuración de Rótulos
+| Tipo | Formato | Preview | Impresión |
+|------|---------|---------|-----------|
+| Zebra (ZPL) | .zpl, .prn, .txt | ✅ Texto | ✅ Directa |
+| Datamax (DPL) | .dpl | ✅ Texto | ✅ Directa |
+| Zebra Designer | .lbl, .nlbl | ⚠️ Binario | ✅ Directa |
+
+### Funcionalidades Implementadas
+1. ✅ Importar plantillas ZPL/DPL/lbl/nlbl
+2. ✅ Editor visual drag & drop
+3. ✅ Vista previa con datos de prueba
+4. ✅ Impresión de prueba con IP configurable
+5. ✅ Exportar a archivo (.zpl/.dpl)
+6. ✅ Descargar archivo original (.lbl/.nlbl)
+7. ✅ Copiar código al portapapeles (SSR safe)
+
+### Próximos Pasos en Producción
+1. Actualizar: `reiniciar-actualizado.bat`
+2. Configurar IPs de impresoras en cada puesto
+3. Probar impresión con plantillas importadas
+
