@@ -93,6 +93,10 @@ export function ConfigRotulosModule({ operador }: Props) {
   const [previewProcesado, setPreviewProcesado] = useState('')
   const [imprimiendo, setImprimiendo] = useState(false)
   
+  // Configuración de impresora para prueba
+  const [impresoraIp, setImpresoraIp] = useState('')
+  const [impresoraPuerto, setImpresoraPuerto] = useState('9100')
+  
   // Formulario de edición
   const [editandoContenido, setEditandoContenido] = useState('')
   const [editandoNombre, setEditandoNombre] = useState('')
@@ -183,6 +187,11 @@ export function ConfigRotulosModule({ operador }: Props) {
   const handleImprimirPrueba = async () => {
     if (!rotuloSeleccionado) return
     
+    if (!impresoraIp) {
+      toast.error('Ingrese la IP de la impresora para imprimir')
+      return
+    }
+    
     setImprimiendo(true)
     try {
       const response = await fetch('/api/rotulos/imprimir', {
@@ -191,16 +200,18 @@ export function ConfigRotulosModule({ operador }: Props) {
         body: JSON.stringify({
           rotuloId: rotuloSeleccionado.id,
           datos: datosPrueba,
-          modoPrueba: true
+          cantidad: 1,
+          impresoraIp: impresoraIp,
+          impresoraPuerto: parseInt(impresoraPuerto) || 9100
         })
       })
 
       const result = await response.json()
       
-      if (response.ok) {
-        toast.success('Impresión de prueba enviada')
+      if (response.ok && result.success) {
+        toast.success(`Impresión de prueba enviada a ${impresoraIp}:${impresoraPuerto}`)
       } else {
-        toast.error(result.error || 'Error al imprimir')
+        toast.error(result.error || result.details || 'Error al imprimir')
       }
     } catch (error) {
       console.error('Error:', error)
@@ -208,6 +219,21 @@ export function ConfigRotulosModule({ operador }: Props) {
     } finally {
       setImprimiendo(false)
     }
+  }
+
+  // Exportar a archivo (para ver lo que imprime)
+  const handleExportarArchivo = () => {
+    if (!rotuloSeleccionado || !previewProcesado) return
+    
+    const ext = rotuloSeleccionado.tipoImpresora === 'DATAMAX' ? 'dpl' : 'zpl'
+    const blob = new Blob([previewProcesado], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `prueba_${rotuloSeleccionado.nombre.replace(/\s+/g, '_')}.${ext}`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success(`Archivo .${ext} descargado`)
   }
 
   // Seleccionar archivo
@@ -435,10 +461,27 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
     }
   }
 
-  // Copiar contenido
-  const handleCopiar = (contenido: string) => {
-    navigator.clipboard.writeText(contenido)
-    toast.success('Contenido copiado al portapapeles')
+  // Copiar contenido (safe para SSR)
+  const handleCopiar = async (contenido: string) => {
+    try {
+      if (typeof window !== 'undefined' && navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(contenido)
+      } else {
+        // Fallback para navegadores sin clipboard API
+        const textarea = document.createElement('textarea')
+        textarea.value = contenido
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      toast.success('Contenido copiado al portapapeles')
+    } catch (error) {
+      console.error('Error al copiar:', error)
+      toast.error('No se pudo copiar al portapapeles')
+    }
   }
 
   // Descargar archivo
@@ -984,10 +1027,7 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(previewProcesado)
-                      toast.success('ZPL copiado al portapapeles')
-                    }}
+                    onClick={() => handleCopiar(previewProcesado)}
                   >
                     <Copy className="w-4 h-4 mr-1" />
                     Copiar
@@ -1001,40 +1041,60 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
               </ScrollArea>
               
               {/* Acciones */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    const blob = new Blob([previewProcesado], { type: 'text/plain' })
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `preview_${rotuloSeleccionado?.nombre || 'rotulo'}.zpl`
-                    a.click()
-                    URL.revokeObjectURL(url)
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar ZPL
-                </Button>
-                <Button
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                  onClick={handleImprimirPrueba}
-                  disabled={imprimiendo}
-                >
-                  {imprimiendo ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Imprimiendo...
-                    </>
-                  ) : (
-                    <>
-                      <Printer className="w-4 h-4 mr-2" />
-                      Imprimir Prueba
-                    </>
-                  )}
-                </Button>
+              <div className="space-y-3">
+                {/* Configuración de impresora */}
+                <div className="p-3 bg-stone-50 rounded-lg border">
+                  <p className="text-xs font-medium text-stone-600 mb-2">Configuración de Impresora</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">IP de Impresora</Label>
+                      <Input
+                        value={impresoraIp}
+                        onChange={(e) => setImpresoraIp(e.target.value)}
+                        placeholder="192.168.1.100"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Puerto</Label>
+                      <Input
+                        value={impresoraPuerto}
+                        onChange={(e) => setImpresoraPuerto(e.target.value)}
+                        placeholder="9100"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Botones de acción */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleExportarArchivo}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar Archivo
+                  </Button>
+                  <Button
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={handleImprimirPrueba}
+                    disabled={imprimiendo || !impresoraIp}
+                  >
+                    {imprimiendo ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Imprimiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Printer className="w-4 h-4 mr-2" />
+                        Imprimir Prueba
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -1115,7 +1175,7 @@ OPCIÓN 3 - Exportar desde Zebra Designer:
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => navigator.clipboard.writeText(editandoContenido)}
+                    onClick={() => handleCopiar(editandoContenido)}
                   >
                     <Copy className="w-3 h-3 mr-1" />
                     Copiar

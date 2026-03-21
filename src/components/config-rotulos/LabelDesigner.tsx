@@ -77,6 +77,29 @@ export function LabelDesigner({
   const canvasWidth = ancho * scale / 4 // Reducido para visualización
   const canvasHeight = alto * scale / 4
   
+  // Copiar contenido (safe para SSR)
+  const handleCopiar = async (contenido: string) => {
+    try {
+      if (typeof window !== 'undefined' && navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(contenido)
+      } else {
+        // Fallback para navegadores sin clipboard API
+        const textarea = document.createElement('textarea')
+        textarea.value = contenido
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      toast.success('Código copiado')
+    } catch (error) {
+      console.error('Error al copiar:', error)
+      toast.error('No se pudo copiar')
+    }
+  }
+  
   // Agregar elemento
   const addElement = (type: LabelElement['type']) => {
     const newElement: LabelElement = {
@@ -420,10 +443,7 @@ export function LabelDesigner({
             {generatedCode}
           </pre>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              navigator.clipboard.writeText(generatedCode)
-              toast.success('Código copiado')
-            }}>
+            <Button variant="outline" onClick={() => handleCopiar(generatedCode)}>
               Copiar
             </Button>
             <Button onClick={() => {

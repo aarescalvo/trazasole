@@ -1690,14 +1690,61 @@ Stage Summary:
 | 2 | Configurar IPs de impresoras | 🔄 Pendiente configuración en producción |
 | 3 | Probar en producción | 🔄 Pendiente |
 
-### 🟡 Media Prioridad
+### 🟢 Nuevas Mejoras (v3.2.0)
 | # | Tarea | Estado |
 |---|-------|--------|
-| 4 | Logs centralizados | ⏳ Pendiente |
-| 5 | Backup automático | ⏳ Pendiente |
-| 6 | Notificaciones | ⏳ Pendiente |
+| 4 | Error clipboard SSR | ✅ **CORREGIDO** |
+| 5 | Impresión de prueba con IP | ✅ **IMPLEMENTADO** |
+| 6 | Exportar a archivo | ✅ **IMPLEMENTADO** |
 
 ---
-### Versión actual: **3.1.9**
-### Próxima versión sugerida: **3.2.0**
+### Versión actual: **3.2.0**
+### Próxima versión sugerida: **3.2.1**
+
+
+---
+Task ID: 1573
+Agent: main
+Task: Corregir error clipboard y mejorar impresión de prueba
+
+Work Log:
+
+#### 1. Error Corregido
+**Error:** `TypeError: Cannot read properties of undefined (reading 'writeText')`
+**Causa:** `navigator.clipboard` no está disponible en SSR o en contextos no seguros (no HTTPS)
+
+**Solución implementada:**
+- Creada función `handleCopiar()` con fallback para navegadores sin clipboard API
+- Si `navigator.clipboard` no está disponible, usa `document.execCommand('copy')` como alternativa
+- Archivos modificados:
+  - `src/components/config-rotulos/index.tsx`
+  - `src/components/config-rotulos/LabelDesigner.tsx`
+
+#### 2. Mejoras en Impresión de Prueba
+**Antes:**
+- No pedía IP de impresora
+- No permitía configurar puerto
+- Botón siempre habilitado
+
+**Ahora:**
+- Campo para IP de impresora
+- Campo para puerto (default 9100)
+- Botón deshabilitado si no hay IP
+- Mensaje de confirmación con IP y puerto
+
+#### 3. Nueva Función: Exportar a Archivo
+- Permite descargar el código ZPL/DPL procesado
+- Útil para ver exactamente qué se enviaría a la impresora
+- Nombre del archivo: `prueba_{nombre_rotulo}.{zpl|dpl}`
+
+#### 4. UI Mejorada en Modal Preview
+- Panel de configuración de impresora con IP y Puerto
+- Botón "Exportar Archivo" para ver el código sin imprimir
+- Botón "Imprimir Prueba" para enviar a la impresora configurada
+
+Stage Summary:
+- **Error clipboard corregido** ✅
+- **Impresión de prueba con IP configurable** ✅
+- **Exportación a archivo implementada** ✅
+- **Versión actualizada a 3.2.0** ✅
 
