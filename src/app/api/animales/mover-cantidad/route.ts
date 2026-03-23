@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-// Crear cliente Prisma fresco para evitar problemas de readonly
-const getPrisma = () => new PrismaClient({
-  log: ['query'],
-  datasourceUrl: 'file:/home/z/my-project/db/custom.db'
-})
+import { db } from '@/lib/db'
 
 // POST - Mover cantidad de animales de una tropa entre corrales (con transacción)
 export async function POST(request: NextRequest) {
   console.log('[MOVER-CANTIDAD] ===== INICIANDO =====')
-  const db = getPrisma()
   
   try {
     const body = await request.json()
@@ -144,13 +137,14 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      // Registrar auditoría (sin operadorId si no es válido)
+      // Registrar auditoría
       await tx.auditoria.create({
         data: {
-          operadorId: null,
+          operadorId: operadorId || null,
           modulo: 'MOVIMIENTO_HACIENDA',
           accion: 'UPDATE',
           entidad: 'Animal',
+          entidadId: idsAMover[0],
           descripcion: `Movidos ${cantidadMover} animales de tropa ${tropa.codigo} al corral ${corralDestino.nombre}`
         }
       })
@@ -195,10 +189,8 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { success: false, error: 'Error al mover animales' },
+      { success: false, error: 'Error al mover animales: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }
