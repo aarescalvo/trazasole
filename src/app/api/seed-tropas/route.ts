@@ -1,25 +1,22 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient, Especie, TipoAnimal, EstadoTropa, EstadoAnimal } from '@prisma/client'
+import { Especie, TipoAnimal, EstadoTropa, EstadoAnimal } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient({
-  datasourceUrl: 'file:/home/z/my-project/db/custom.db'
-})
+import { db } from '@/lib/db'
 
 export async function GET() {
   try {
     // 1. Verificar si ya existen clientes
-    let productor = await prisma.cliente.findFirst({
+    let productor = await db.cliente.findFirst({
       where: { esProductor: true }
     })
 
-    let usuarioFaena = await prisma.cliente.findFirst({
+    let usuarioFaena = await db.cliente.findFirst({
       where: { esUsuarioFaena: true }
     })
 
     // Crear clientes de prueba si no existen
     if (!productor) {
-      productor = await prisma.cliente.create({
+      productor = await db.cliente.create({
         data: {
           nombre: 'Estancia La Pampa SA',
           cuit: '20-12345678-9',
@@ -38,7 +35,7 @@ export async function GET() {
     }
 
     if (!usuarioFaena) {
-      usuarioFaena = await prisma.cliente.create({
+      usuarioFaena = await db.cliente.create({
         data: {
           nombre: 'Carnicería Don José',
           cuit: '20-98765432-1',
@@ -57,9 +54,9 @@ export async function GET() {
     }
 
     // 2. Crear/Verificar corral
-    let corral = await prisma.corral.findFirst()
+    let corral = await db.corral.findFirst()
     if (!corral) {
-      corral = await prisma.corral.create({
+      corral = await db.corral.create({
         data: {
           nombre: 'Corral 1',
           capacidad: 50,
@@ -70,10 +67,10 @@ export async function GET() {
     }
 
     // 3. Verificar si ya existe operador
-    let operador = await prisma.operador.findFirst()
+    let operador = await db.operador.findFirst()
     if (!operador) {
       const hashedPassword = await bcrypt.hash('admin123', 10)
-      operador = await prisma.operador.create({
+      operador = await db.operador.create({
         data: {
           nombre: 'Admin Principal',
           usuario: 'admin',
@@ -97,7 +94,7 @@ export async function GET() {
     }
 
     // 4. Obtener último número de tropa
-    const ultimoTropa = await prisma.tropa.findFirst({
+    const ultimoTropa = await db.tropa.findFirst({
       where: { especie: Especie.BOVINO },
       orderBy: { numero: 'desc' },
       select: { numero: true }
@@ -109,7 +106,7 @@ export async function GET() {
     const tropa1Codigo = `B ${anio} ${String(proximoNumero).padStart(4, '0')}`
     const tropa1CodigoSimplificado = `B${String(proximoNumero).padStart(4, '0')}`
 
-    const tropa1 = await prisma.tropa.create({
+    const tropa1 = await db.tropa.create({
       data: {
         numero: proximoNumero,
         codigo: tropa1Codigo,
@@ -142,7 +139,7 @@ export async function GET() {
     for (let i = 1; i <= 5; i++) {
       const animalCodigo = `${tropa1Codigo.replace(/\s/g, '')}-${String(i).padStart(3, '0')}`
       
-      await prisma.animal.create({
+      await db.animal.create({
         data: {
           tropaId: tropa1.id,
           numero: i,
@@ -159,11 +156,11 @@ export async function GET() {
 
     // Crear registros de pesaje individual
     for (let i = 1; i <= 5; i++) {
-      const animal = await prisma.animal.findFirst({
+      const animal = await db.animal.findFirst({
         where: { tropaId: tropa1.id, numero: i }
       })
       if (animal) {
-        await prisma.pesajeIndividual.create({
+        await db.pesajeIndividual.create({
           data: {
             animalId: animal.id,
             peso: pesosVivos[i-1],
@@ -179,7 +176,7 @@ export async function GET() {
     const tropa2Codigo = `B ${anio} ${String(tropa2Numero).padStart(4, '0')}`
     const tropa2CodigoSimplificado = `B${String(tropa2Numero).padStart(4, '0')}`
 
-    const tropa2 = await prisma.tropa.create({
+    const tropa2 = await db.tropa.create({
       data: {
         numero: tropa2Numero,
         codigo: tropa2Codigo,
@@ -211,7 +208,7 @@ export async function GET() {
     for (let i = 1; i <= 4; i++) {
       const animalCodigo = `${tropa2Codigo.replace(/\s/g, '')}-${String(i).padStart(3, '0')}`
       
-      await prisma.animal.create({
+      await db.animal.create({
         data: {
           tropaId: tropa2.id,
           numero: i,
@@ -231,7 +228,7 @@ export async function GET() {
     const tropa3Codigo = `B ${anio} ${String(tropa3Numero).padStart(4, '0')}`
     const tropa3CodigoSimplificado = `B${String(tropa3Numero).padStart(4, '0')}`
 
-    const tropa3 = await prisma.tropa.create({
+    const tropa3 = await db.tropa.create({
       data: {
         numero: tropa3Numero,
         codigo: tropa3Codigo,
@@ -283,7 +280,7 @@ export async function GET() {
     for (let i = 1; i <= 6; i++) {
       const animalCodigo = `${tropa3Codigo.replace(/\s/g, '')}-${String(i).padStart(3, '0')}`
       
-      const animal = await prisma.animal.create({
+      const animal = await db.animal.create({
         data: {
           tropaId: tropa3.id,
           numero: i,
@@ -299,7 +296,7 @@ export async function GET() {
 
       // Crear pesaje individual solo para los 2 primeros
       if (pesosTropa3[i-1]) {
-        await prisma.pesajeIndividual.create({
+        await db.pesajeIndividual.create({
           data: {
             animalId: animal.id,
             peso: pesosTropa3[i-1]!,
@@ -353,7 +350,5 @@ export async function GET() {
       { success: false, error: String(error) },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

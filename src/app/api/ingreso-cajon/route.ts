@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-// Crear cliente Prisma fresco para evitar problemas de readonly
-const getPrisma = () => new PrismaClient({
-  log: ['query'],
-  datasourceUrl: 'file:/home/z/my-project/db/custom.db'
-})
+import { db } from '@/lib/db'
 
 interface AnimalIngreso {
   id: string
@@ -37,7 +31,6 @@ interface TropaIngreso {
 
 // GET - Fetch tropas with animals ready for camera ingress
 export async function GET(request: NextRequest) {
-  const db = getPrisma()
   try {
     const { searchParams } = new URL(request.url)
     const tipo = searchParams.get('tipo') // 'pendientes' | 'historial'
@@ -172,14 +165,11 @@ export async function GET(request: NextRequest) {
       { success: false, error: 'Error al obtener tropas' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }
 
 // POST - Register camera ingress for an animal
 export async function POST(request: NextRequest) {
-  const db = getPrisma()
   try {
     const body = await request.json()
     const { romaneoId, camaraId, operadorId, siglas } = body
@@ -386,7 +376,5 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Error al registrar ingreso a cámara' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }

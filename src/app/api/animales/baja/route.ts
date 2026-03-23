@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-// Crear cliente Prisma fresco para evitar problemas de readonly
-const getPrisma = () => new PrismaClient({
-  log: ['query'],
-  datasourceUrl: 'file:/home/z/my-project/db/custom.db'
-})
+import { db } from '@/lib/db'
 
 // POST - Register animal death/baja
 export async function POST(request: NextRequest) {
-  const db = getPrisma()
-  
   try {
     const body = await request.json()
     const { animalId, motivoBaja } = body
@@ -75,7 +67,5 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Error al registrar baja' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }

@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-// Crear un cliente Prisma fresco para cada solicitud que necesite escribir
-const getPrisma = () => new PrismaClient({
-  log: ['query'],
-  datasourceUrl: 'file:/home/z/my-project/db/custom.db'
-})
+import { db } from '@/lib/db'
 
 // GET - Fetch listas de faena
 export async function GET(request: NextRequest) {
-  const db = getPrisma()
   try {
     const listas = await db.listaFaena.findMany({
       include: {
@@ -57,14 +50,11 @@ export async function GET(request: NextRequest) {
       { success: false, error: 'Error al obtener listas de faena' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }
 
 // POST - Create new lista de faena
 export async function POST(request: NextRequest) {
-  const db = getPrisma()
   try {
     const body = await request.json()
     const { operadorId } = body
@@ -109,14 +99,11 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Error al crear lista de faena' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }
 
 // PUT - Reabrir lista cerrada
 export async function PUT(request: NextRequest) {
-  const db = getPrisma()
   try {
     const body = await request.json()
     const { listaId, listaFaenaId, accion } = body
@@ -186,7 +173,5 @@ export async function PUT(request: NextRequest) {
       { success: false, error: 'Error al reabrir lista' },
       { status: 500 }
     )
-  } finally {
-    await db.$disconnect()
   }
 }
