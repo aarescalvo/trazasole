@@ -1982,3 +1982,51 @@ Stage Summary:
 - **Paneles de resumen y alertas** ✅
 - **Versión actualizada a 3.2.4** ✅
 
+
+---
+Task ID: 1578
+Agent: main
+Task: Optimización de consultas y mejora del dashboard
+
+Work Log:
+
+#### 1. Mejoras en la API del Dashboard
+**Antes:**
+- Solo 3 estadísticas básicas
+- Sin datos de faena por día
+- Sin distribución por especie
+
+**Ahora:**
+- 15+ estadísticas en paralelo
+- Faena semanal con agrupación por día
+- Distribución por especie
+- Stock por cámara con ocupación
+- Metas y KPIs
+
+#### 2. Optimizaciones Aplicadas
+| Técnica | Implementación |
+|---------|----------------|
+| Promise.all | Consultas paralelas en vez de secuenciales |
+| Cache 30s | Resultados cacheados para datos frecuentes |
+| Select específico | Solo campos necesarios en consultas |
+| GroupBy | Agregación en BD en vez de JavaScript |
+
+#### 3. Sistema de Cache Existente
+El proyecto ya tiene `/lib/cache.ts` con:
+- Cache en memoria con TTL
+- Limpieza automática de expirados
+- Estadísticas de hit/miss
+- Keys predefinidas para entidades
+
+#### 4. Índices Existentes (verificados)
+Ya hay +80 índices definidos en el schema:
+- Por estado, especie, fecha
+- Por relaciones (corralId, tropaId, etc.)
+- Compuestos para consultas frecuentes
+
+Stage Summary:
+- **API Dashboard optimizada** ✅
+- **Consultas en paralelo** ✅
+- **Cache activo en endpoints críticos** ✅
+- **Versión actualizada a 3.2.5** ✅
+
