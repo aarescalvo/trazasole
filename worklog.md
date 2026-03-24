@@ -2117,3 +2117,34 @@ Stage Summary:
 - Considerar agregar soporte para otras dimensiones de etiqueta
 
 ### Versión actual: **3.2.6**
+
+---
+Task ID: 1579
+Agent: main
+Task: Subida de cambios a ambos repositorios GitHub (1532 y trazasole)
+
+Work Log:
+
+#### 1. Estado Inicial
+- Repositorios con historiales divergentes
+- Conflictos de merge en: package.json, QuickAddDialog.tsx, pesaje-individual-module.tsx, worklog.md
+
+#### 2. Resolución de Conflictos
+- Abortado merge con conflictos
+- Usada estrategia 'ours' para preservar cambios locales v3.2.6
+- Merge completado sin perder funcionalidades nuevas
+
+#### 3. Push a Repositorios
+- **Desarrollo (1532)**: `65643f1..f04fdae master -> master` ✅
+- **Producción (trazasole)**: `890f66f..f04fdae master -> master` ✅
+
+#### 4. Funcionalidades en v3.2.6
+- Creación de clientes con formulario completo desde pesaje
+- Impresión de rótulos por duplicado (DPL para Datamax Mark II)
+- Botones de repesar/editar/eliminar en pesaje individual
+- Reimpresión de rótulos
+
+Stage Summary:
+- **Cambios subidos a ambos repositorios** ✅
+- **Sin force push (estrategia ours)** ✅
+- **Versión 3.2.6 sincronizada** ✅
